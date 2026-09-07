@@ -1,17 +1,3 @@
-<?php
-session_start();
-
-// If already logged in, go to dashboard
-if (!empty($_SESSION['admin_id'])) {
-    header('Location: dashboard.php');
-    exit;
-}
-
-// Optional: include config if needed
-if (file_exists(__DIR__ . '/api/config.php')) {
-    require __DIR__ . '/api/config.php';
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
