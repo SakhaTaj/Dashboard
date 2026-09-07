@@ -1,0 +1,3341 @@
+<?php
+session_start();
+if (empty($_SESSION['admin_id'])) {
+    header('Location: index.html');
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sakha Console — SAKHA TAJ Skills</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="./js/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --navy: #0f2c4d;
+            --navy-800: #123a63;
+            --blue: #1d6fb8;
+            --blue-500: #2c8ad6;
+            --accent: #f7941d;
+            --accent-600: #e07f0a;
+            --green: #1faa59;
+            --red: #dc3545;
+            --ink: #1b2733;
+            --muted: #6b7c8f;
+            --line: #e6ebf1;
+            --bg: #f4f7fb;
+            --card: #fff;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: "Open Sans", system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+        }
+        h1,
+        h2,
+        h3,
+        h4,
+        .font-head {
+            font-family: "Poppins", system-ui, sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 9px;
+            height: 9px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c7d3e0;
+            border-radius: 9px;
+        }
+        .side-link.active {
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+        }
+        .side-link.active .side-bar {
+            opacity: 1;
+        }
+        .fade-in {
+            animation: fade 0.4s ease both;
+        }
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+        .view {
+            display: none;
+        }
+        .view.active {
+            display: block;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 0.6rem 1rem;
+            border-radius: 0.6rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.15s;
+        }
+        .btn-primary {
+            background: var(--blue);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--navy);
+        }
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-accent:hover {
+            background: var(--accent-600);
+        }
+        .btn-ghost {
+            background: #eef2f7;
+            color: var(--ink);
+        }
+        .btn-ghost:hover {
+            background: #e2e8f0;
+        }
+        .btn-danger {
+            background: #fdecee;
+            color: var(--red);
+        }
+        .btn-danger:hover {
+            background: #fbd5da;
+        }
+        .field {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 0.6rem;
+            padding: 0.6rem 0.75rem;
+            font-size: 0.9rem;
+            outline: none;
+            background: #fff;
+            font-family: inherit;
+        }
+        .field:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(29, 111, 184, 0.12);
+        }
+        label.lbl {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 0.3rem;
+            display: block;
+        }
+        .badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+        }
+        .modal-wrap {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 2rem 1rem;
+            overflow: auto;
+            background: rgba(15, 44, 77, 0.5);
+        }
+        .modal-wrap.open {
+            display: flex;
+        }
+        table {
+            border-collapse: collapse;
+        }
+
+        .readonly-badge {
+            background: #f7941d;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* ===== PRINT STYLES ===== */
+        @media print {
+            body {
+                background: #fff !important;
+                margin: 0;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+            #printArea {
+                display: block !important;
+                background: #fff;
+                padding: 6mm 8mm;
+                margin: 0 auto;
+                max-width: 100%;
+            }
+            @page {
+                margin: 8mm 10mm;
+                size: A4 portrait;
+            }
+            .print-doc {
+                font-family: "Open Sans", sans-serif;
+                color: #1a1a1a;
+                font-size: 12px;
+                line-height: 1.5;
+            }
+            .print-doc table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 11px;
+            }
+            .print-doc table td,
+            .print-doc table th {
+                border: 1px solid #888;
+                padding: 4px 7px;
+                vertical-align: middle;
+            }
+            .print-doc table th {
+                background: #0f2c4d;
+                color: #fff;
+                font-weight: 700;
+                text-align: center;
+            }
+            .print-doc .field-label {
+                font-weight: 600;
+                background: #f4f7fb;
+                width: 28%;
+                padding: 4px 7px;
+            }
+
+            /* ----- HEADER (inside certificate) ----- */
+            .print-doc .header-wrapper {
+                padding-bottom: 6px;
+                margin-bottom: 6px;
+                border-bottom: 2px solid #0f2c4d;
+            }
+            .print-doc .header-logos {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .print-doc .header-logos .logo-item {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 44px;
+                max-width: 70px;
+            }
+            .print-doc .header-logos .logo-item img {
+                max-height: 44px;
+                width: auto;
+                object-fit: contain;
+                display: block;
+            }
+            .print-doc .header-logos .logo-fallback {
+                font-weight: 700;
+                font-size: 12px;
+                color: #0f2c4d;
+                letter-spacing: 0.5px;
+                display: none;
+            }
+            .print-doc .header-logos .logo-item img[style*="display:none"]+.logo-fallback {
+                display: block;
+            }
+            .print-doc .inst-details {
+                text-align: center;
+                margin: 2px 0 0;
+                padding: 0 4px;
+            }
+            .print-doc .inst-details .trust {
+                font-size: 10px;
+                color: #777;
+                margin: 0;
+            }
+            .print-doc .inst-details .name {
+                font-family: "Poppins", sans-serif;
+                font-size: 17px;
+                font-weight: 700;
+                color: #0f2c4d;
+                margin: 1px 0;
+            }
+            .print-doc .inst-details .iso-line {
+                font-size: 10px;
+                color: #666;
+                text-align: center;
+                margin: 1px 0 0;
+                letter-spacing: 0.2px;
+            }
+
+            .print-doc .section-title {
+                font-family: "Poppins", sans-serif;
+                font-size: 16px;
+                font-weight: 700;
+                color: #0f2c4d;
+                text-align: center;
+                margin: 2px 0 8px;
+            }
+
+            /* ----- CERTIFICATE: everything inside one border ----- */
+            .print-doc .cert-wrap {
+                border: 6px double #0f2c4d;
+                padding: 16px 20px;
+                background: #fff;
+                position: relative;
+            }
+            .print-doc .cert-wrap::before {
+                content: "";
+                position: absolute;
+                inset: 8px;
+                border: 2px solid #f7941d;
+                pointer-events: none;
+            }
+            .print-doc .cert-title {
+                font-family: "Poppins", sans-serif;
+                font-size: 24px;
+                font-weight: 800;
+                letter-spacing: 3px;
+                color: #e07f0a;
+                text-align: center;
+                margin: 0 0 6px;
+                text-transform: uppercase;
+            }
+            .print-doc .cert-sub {
+                text-align: center;
+                font-size: 12px;
+                color: #444;
+                margin: 4px 0 0;
+            }
+            .print-doc .cert-name {
+                font-family: "Poppins", sans-serif;
+                font-size: 28px;
+                font-weight: 700;
+                color: #0f2c4d;
+                text-align: center;
+                margin: 2px 0 6px;
+                letter-spacing: 0.5px;
+            }
+            .print-doc .cert-body {
+                text-align: center;
+                font-size: 12px;
+                max-width: 460px;
+                margin: 2px auto 8px;
+                line-height: 1.6;
+                color: #1b2733;
+            }
+            .print-doc .cert-footer {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 20px;
+                padding: 0 8px;
+                font-size: 11px;
+                color: #555;
+            }
+            .print-doc .cert-footer .sign {
+                text-align: center;
+                min-width: 100px;
+            }
+            .print-doc .cert-footer .sign .line {
+                border-top: 1.5px solid #333;
+                width: 100%;
+                margin-top: 24px;
+                padding-top: 4px;
+            }
+
+            /* ----- FOOTER (inside certificate, at bottom) ----- */
+            .print-doc .print-footer {
+                border-top: 2px solid #0f2c4d;
+                margin-top: 12px;
+                padding-top: 6px;
+                text-align: center;
+                font-size: 10px;
+                color: #333;
+                line-height: 1.6;
+            }
+            .print-doc .print-footer .footer-line {
+                display: block;
+                margin: 1px 0;
+            }
+            .print-doc .print-footer .footer-line strong {
+                color: #0f2c4d;
+            }
+            .print-doc .print-footer .footer-row {
+                display: flex;
+                justify-content: center;
+                gap: 16px;
+                flex-wrap: wrap;
+                margin: 1px 0;
+            }
+            .print-doc .print-footer .footer-row span {
+                display: inline-block;
+            }
+            .print-doc .print-footer .footer-row strong {
+                color: #0f2c4d;
+            }
+
+            .print-doc .sign-row {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 28px;
+                font-size: 11px;
+                padding: 0 4px;
+            }
+            .print-doc .sign-row .sign-box {
+                text-align: center;
+                min-width: 90px;
+            }
+            .print-doc .sign-row .sign-box .line {
+                border-top: 1.5px solid #333;
+                width: 100%;
+                margin-top: 22px;
+                padding-top: 4px;
+            }
+            .print-doc .print-meta {
+                text-align: center;
+                font-size: 9px;
+                color: #aaa;
+                margin-top: 4px;
+                border-top: 1px solid #eee;
+                padding-top: 4px;
+            }
+
+            /* ----- ADMISSION FORM with photo box ----- */
+            .print-doc .admission-layout {
+                display: flex;
+                gap: 12px;
+                align-items: flex-start;
+            }
+            .print-doc .admission-layout .admission-fields {
+                flex: 2;
+            }
+            .print-doc .admission-layout .admission-photo {
+                flex: 0 0 100px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+            }
+            .print-doc .admission-layout .admission-photo .photo-box {
+                width: 100px;
+                height: 120px;
+                border: 2px solid #888;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                background: #fafafa;
+                padding: 4px;
+            }
+            .print-doc .admission-layout .admission-photo .photo-box svg {
+                max-width: 60px;
+                max-height: 70px;
+            }
+            .print-doc .admission-layout .admission-photo .photo-box .photo-label {
+                font-size: 8px;
+                color: #999;
+                margin-top: 2px;
+                text-align: center;
+            }
+            .print-doc .admission-layout .admission-photo .photo-caption {
+                font-size: 8px;
+                color: #888;
+                margin-top: 2px;
+                text-align: center;
+            }
+
+            .print-doc .receipt-total {
+                background: #0f2c4d;
+                color: #fff;
+                font-weight: 700;
+                padding: 4px 8px;
+                text-align: right;
+                font-size: 13px;
+            }
+            .print-doc .receipt-total span {
+                color: #f7941d;
+                font-size: 16px;
+            }
+
+            /* ===== TWO RECEIPTS ON ONE PAGE ===== */
+            .print-doc .receipt-block {
+                border: 2px solid #0f2c4d;
+                padding: 12px 14px;
+                margin-bottom: 8px;
+                background: #fff;
+                page-break-inside: avoid;
+                position: relative;
+            }
+            .print-doc .receipt-block:last-child {
+                margin-bottom: 0;
+            }
+            .print-doc .receipt-block .copy-label {
+                position: absolute;
+                top: 4px;
+                right: 10px;
+                font-size: 11px;
+                font-weight: 700;
+                color: #f7941d;
+                letter-spacing: 1px;
+                border: 1.5px solid #f7941d;
+                padding: 0 8px;
+                border-radius: 3px;
+                background: #fff7ed;
+            }
+            .print-doc .receipt-block .receipt-title {
+                font-family: "Poppins", sans-serif;
+                font-size: 14px;
+                font-weight: 700;
+                color: #0f2c4d;
+                text-align: center;
+                margin: 0 0 4px;
+                letter-spacing: 1px;
+            }
+            .print-doc .receipt-block table {
+                font-size: 11px;
+            }
+            .print-doc .receipt-block table td {
+                padding: 3px 6px;
+            }
+            .print-doc .receipt-block .receipt-total {
+                background: #0f2c4d;
+                color: #fff;
+                font-weight: 700;
+                padding: 3px 8px;
+                text-align: right;
+                font-size: 12px;
+            }
+            .print-doc .receipt-block .receipt-total span {
+                color: #f7941d;
+                font-size: 14px;
+            }
+            .print-doc .receipt-block .balance-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 2px 6px;
+                font-size: 11px;
+                border-top: 1px dashed #ccc;
+                margin-top: 2px;
+            }
+            .print-doc .receipt-block .balance-row .label {
+                font-weight: 600;
+                color: #555;
+            }
+            .print-doc .receipt-block .balance-row .value {
+                font-weight: 700;
+            }
+            .print-doc .receipt-block .balance-row .value.due {
+                color: #dc3545;
+            }
+            .print-doc .receipt-block .balance-row .value.paid {
+                color: #1faa59;
+            }
+            .print-doc .receipt-block .sign-row {
+                margin-top: 12px;
+                font-size: 11px;
+                display: flex;
+                justify-content: space-between;
+                padding: 0 4px;
+            }
+            .print-doc .receipt-block .sign-row .sign-box {
+                text-align: center;
+                min-width: 80px;
+            }
+            .print-doc .receipt-block .sign-row .sign-box .line {
+                border-top: 1.5px solid #333;
+                width: 100%;
+                margin-top: 18px;
+                padding-top: 3px;
+            }
+            .print-doc .receipt-divider {
+                border: none;
+                border-top: 2px dashed #999;
+                margin: 8px 0;
+            }
+        }
+
+        #printArea {
+            display: none;
+        }
+        .print-doc {
+            font-family: "Open Sans", sans-serif;
+            color: #111;
+        }
+    </style>
+   <link rel="stylesheet" href="./css/tailwind.min.css">
+   <script>
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    });
+
+    document.addEventListener('keydown', function(e) {
+
+        if (e.ctrlKey && e.key === 'u') {
+            e.preventDefault();
+            return false;
+        }
+
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+            e.preventDefault();
+            return false;
+        }
+
+        if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
+            e.preventDefault();
+            return false;
+        }
+
+        if (e.key === 'F12') {
+            e.preventDefault();
+            return false;
+        }
+
+        if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>
+</head>
+<body>
+    <div class="min-h-screen flex no-print">
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="fixed lg:static z-40 inset-y-0 left-0 w-72 -translate-x-full lg:translate-x-0 transition-transform duration-300 text-white flex flex-col" style="background:linear-gradient(180deg,var(--navy),var(--navy-800));">
+            <div class="flex items-center gap-3 px-5 h-20 border-b border-white/10">
+                <div class="w-11 h-11 rounded-xl bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                    <img src="images/sakha-logo.jpg" alt="Logo" class="w-10 h-10 object-contain" />
+                </div>
+                <div>
+                    <p class="font-head font-bold leading-tight">sakha</p>
+                    <p class="text-[11px] text-white/60 leading-tight">Console</p>
+                </div>
+            </div>
+            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 text-sm" id="navMenu">
+                <p class="px-3 text-[11px] uppercase tracking-wider text-white/40 mb-2">Main</p>
+                <a href="#" data-view="dashboard" class="side-link active relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"><span class="side-bar absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[var(--accent)] opacity-0"></span>📊 Dashboard</a>
+                <a href="#" data-view="students" class="side-link relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"><span class="side-bar absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[var(--accent)] opacity-0"></span>🎓 Students</a>
+                <a href="#" data-view="admissions" class="side-link relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"><span class="side-bar absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[var(--accent)] opacity-0"></span>📝 Admissions</a>
+                <a href="#" data-view="courses" class="side-link relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"><span class="side-bar absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[var(--accent)] opacity-0"></span>📚 Courses &amp; Batches</a>
+                <a href="#" data-view="fees" class="side-link relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"><span class="side-bar absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[var(--accent)] opacity-0"></span>💰 Fees &amp; Receipts</a>
+                <a href="#" data-view="placements" class="side-link relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"><span class="side-bar absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[var(--accent)] opacity-0"></span>💼 Placements</a>
+                <a href="#" data-view="certificates" class="side-link relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"><span class="side-bar absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[var(--accent)] opacity-0"></span>🏅 Certificates</a>
+                <a href="#" data-view="batchStudents" class="side-link relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"><span class="side-bar absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[var(--accent)] opacity-0"></span>📋 Batch Students</a>
+                <p class="px-3 text-[11px] uppercase tracking-wider text-white/40 mb-2 mt-5">System</p>
+                <!-- Settings link – hidden for viewers -->
+                <a href="#" data-view="settings" class="side-link relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition" id="settingsLink"><span class="side-bar absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[var(--accent)] opacity-0"></span>⚙️ Settings &amp; Backup</a>
+            </nav>
+            <div class="p-3 border-t border-white/10 text-[11px] text-white/40">Data saved on this device</div>
+        </aside>
+        <div id="overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden"></div>
+
+        <!-- MAIN -->
+        <div class="flex-1 min-w-0 flex flex-col">
+            <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-[var(--line)] h-20 flex items-center gap-4 px-4 sm:px-6">
+                <button id="menuBtn" class="lg:hidden p-2 -ml-1 rounded-lg hover:bg-slate-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <div class="min-w-0">
+                    <h1 id="pageTitle" class="font-head font-bold text-lg sm:text-xl text-[var(--navy)] leading-tight">Dashboard</h1>
+                    <p class="text-xs text-[var(--muted)] hidden sm:block">SAKHA TAJ Institute of Skill Development &amp; Training Center · </p>
+                </div>
+                <div class="ml-auto flex items-center gap-2 sm:gap-3">
+                    <div class="hidden md:flex items-center bg-slate-100 rounded-lg px-3 py-2 w-56">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+                        <input id="globalSearch" placeholder="Search students…" class="bg-transparent outline-none text-sm ml-2 w-full" />
+                    </div>
+                    <div class="flex items-center gap-2 pl-1 sm:pl-2">
+                        <div class="w-9 h-9 rounded-full bg-[var(--blue)] text-white flex items-center justify-center font-semibold text-sm" id="userAvatar">AD</div>
+                        <div class="hidden sm:block leading-tight">
+                            <p class="text-sm font-semibold" id="userName"></p>
+                            <p class="text-[11px] text-[var(--muted)]" id="userRoleLabel">Administrator</p>
+                        </div>
+                        <!-- Logout button for everyone -->
+                        <button onclick="logout()" class="text-xs text-[var(--muted)] hover:text-[var(--red)] transition px-2 py-1 ml-1 border border-transparent hover:border-[var(--red)] rounded-lg no-print">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="p-4 sm:p-6 flex-1">
+                <section id="view-dashboard" class="view active"></section>
+                <section id="view-students" class="view"></section>
+                <section id="view-admissions" class="view"></section>
+                <section id="view-courses" class="view"></section>
+                <section id="view-fees" class="view"></section>
+                <section id="view-placements" class="view"></section>
+                <section id="view-certificates" class="view"></section>
+                <section id="view-batchStudents" class="view"></section>
+                <section id="view-settings" class="view"></section>
+            </main>
+            <footer class="px-6 py-4 text-center text-xs text-[var(--muted)] border-t border-[var(--line)]">© 2026 SAKHA TAJ Institute of Skill Development &amp; Training Center · Console v2.0</footer>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal" class="modal-wrap no-print">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl fade-in">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-[var(--line)]">
+                <h3 id="modalTitle" class="font-head font-bold text-[var(--navy)]">Title</h3>
+                <button onclick="closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="modalBody" class="p-6"></div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="no-print fixed bottom-6 right-6 z-[70] hidden bg-[var(--navy)] text-white px-4 py-3 rounded-xl shadow-lg text-sm font-semibold"></div>
+
+    <!-- PRINT AREA -->
+    <div id="printArea"></div>
+
+    <script>
+        /* ============================ DATA LAYER ============================ */
+        const DB_KEY = "sakha_admin_v2";
+        const INR = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
+        const today = () => new Date().toISOString().slice(0, 10);
+        const uid = (p) => p + Date.now().toString(36) + Math.floor(Math.random() * 900 + 100);
+        const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+
+        // ------------------ ROLE CHECK ------------------
+        let userRole = 'admin';
+        let userName = 'Administrator';
+        try {
+            const role = localStorage.getItem('userRole');
+            if (role) userRole = role;
+            const name = localStorage.getItem('userName');
+            if (name) userName = name;
+        } catch (e) {}
+
+        const isViewer = userRole === 'viewer';
+        const isAdmin = userRole === 'admin';
+
+        // Hide Settings link for viewers
+        document.addEventListener('DOMContentLoaded', function() {
+            const settingsLink = document.getElementById('settingsLink');
+            if (settingsLink && isViewer) {
+                settingsLink.style.display = 'none';
+            }
+            // Update header
+            const avatar = document.getElementById('userAvatar');
+            const roleLabel = document.getElementById('userRoleLabel');
+            const nameEl = document.getElementById('userName');
+            if (isViewer) {
+                avatar.textContent = 'VW';
+                avatar.style.background = '#f7941d';
+                if (roleLabel) roleLabel.textContent = '👁️ Viewer Mode';
+                if (nameEl) nameEl.textContent = userName || 'Viewer';
+            } else {
+                avatar.textContent = 'AD';
+                avatar.style.background = 'var(--blue)';
+                if (roleLabel) roleLabel.textContent = 'Administrator';
+                if (nameEl) nameEl.textContent = userName || 'Administrator';
+            }
+        });
+        // ------------------ END ROLE CHECK ------------------
+
+        const SEED = {
+            institute: {
+                trust: "SAKHA",
+                name: "SAKHA TAJ",
+                short: "SK",
+                address: "India",
+                phone: "+91 1234567890",
+                email: "sakhataj3@gmail.com",
+                website: ".com",
+                footer: "SAKHA TAJ",
+            },
+            courses: [
+                { id: "c1", name: "Welding Master Program", dept: "Mechanical", duration: "3 Months", fee: 18000, seats: 25 },
+                { id: "c2", name: "Electro-Hydraulic & Pneumatic Systems", dept: "Mechanical", duration: "2 Months",
+                    fee: 16000, seats: 20 },
+                { id: "c3", name: "Electrician", dept: "Electrical", duration: "3 Months", fee: 14000, seats: 30 },
+                { id: "c4", name: "Industrial Wiring Technician", dept: "Electrical", duration: "3 Months", fee: 15000,
+                    seats: 25 },
+                { id: "c5", name: "Home Automation", dept: "Electrical", duration: "2 Months", fee: 17000, seats: 20 },
+                { id: "c6", name: "Basic Computer + Tally ERP 9", dept: "Computer", duration: "4 Months", fee: 15000,
+                    seats: 30 },
+                { id: "c7", name: "Basic Computer + DTP", dept: "Computer", duration: "3 Months", fee: 12000, seats: 30 },
+                { id: "c8", name: "Basic Computer + Web Developer", dept: "Computer", duration: "6 Months", fee: 22000,
+                    seats: 30 },
+                { id: "c9", name: "Basic Computer + UI Developer", dept: "Computer", duration: "6 Months", fee: 22000,
+                    seats: 30 },
+                { id: "c10", name: "Spoken English", dept: "Spoken English", duration: "2 Months", fee: 8000, seats: 45 },
+            ],
+            batches: [
+                { id: "b1", name: "Batch 2025-A", courseId: "c1", start: "2025-02-10", end: "2025-05-10",
+                    status: "Completed", trainer: "Mr. Suresh Kumar" },
+                { id: "b2", name: "Batch 2025-A", courseId: "c3", start: "2025-02-10", end: "2025-05-10",
+                    status: "Completed", trainer: "Mr. Prakash M." },
+                { id: "b3", name: "Batch 2025-B", courseId: "c6", start: "2025-03-01", end: "2025-06-30",
+                    status: "Completed", trainer: "Ms. Kavya S." },
+                { id: "b4", name: "Batch 2025-C", courseId: "c8", start: "2025-07-01", end: "2025-12-31",
+                    status: "Ongoing", trainer: "Mr. Naveen R." },
+                { id: "b5", name: "Batch 2025-C", courseId: "c10", start: "2025-07-01", end: "2025-08-31",
+                    status: "Ongoing", trainer: "Ms. Anitha P." },
+            ],
+            students: [
+                { id: "s1", reg: "SAK2025001", name: "Manoj Gowda", gender: "Male", phone: "9880011223",
+                    email: "manoj@example.com", aadhar: "123456789012", qualification: "B.Sc", courseId: "c1",
+                    batchId: "b1", dob: "2002-06-14", guardian: "Ramesh Gowda", address: "Bhadravathi",
+                    admitDate: "2025-02-08", status: "Completed" },
+                { id: "s2", reg: "SAK2025002", name: "Kiran Patil", gender: "Male", phone: "9880033445",
+                    email: "kiran@example.com", aadhar: "223456789013", qualification: "Diploma", courseId: "c3",
+                    batchId: "b2", dob: "2001-03-22", guardian: "Shankar Patil", address: "",
+                    admitDate: "2025-02-09", status: "Completed" },
+                { id: "s3", reg: "SAK2025003", name: "Anusha K.", gender: "Female", phone: "9880055667",
+                    email: "anusha@example.com", aadhar: "323456789014", qualification: "12th", courseId: "c6",
+                    batchId: "b3", dob: "2003-11-02", guardian: "Krishna K.", address: "Sagar",
+                    admitDate: "2025-02-25", status: "Completed" },
+                { id: "s4", reg: "SAK2025004", name: "Sahana R.", gender: "Female", phone: "9880077889",
+                    email: "sahana@example.com", aadhar: "423456789015", qualification: "B.Com", courseId: "c8",
+                    batchId: "b4", dob: "2004-01-19", guardian: "Rajanna R.", address: "",
+                    admitDate: "2025-06-28", status: "Active" },
+                { id: "s5", reg: "SAK2025005", name: "Divya S.", gender: "Female", phone: "9880099001",
+                    email: "divya@example.com", aadhar: "523456789016", qualification: "B.A", courseId: "c10",
+                    batchId: "b5", dob: "2005-08-30", guardian: "Suresh S.", address: "Thirthahalli",
+                    admitDate: "2025-06-29", status: "Active" },
+                { id: "s6", reg: "SAK2025006", name: "Arjun N.", gender: "Male", phone: "9880012340",
+                    email: "arjun@example.com", aadhar: "623456789017", qualification: "ITI", courseId: "c5",
+                    batchId: "b4", dob: "2002-12-05", guardian: "Nagaraj N.", address: "",
+                    admitDate: "2025-06-30", status: "Active" },
+            ],
+            fees: [
+                { id: "f1", studentId: "s1", date: "2025-02-08", amount: 9000, mode: "Cash", receiptNo: "RC0001",
+                    note: "1st installment" },
+                { id: "f2", studentId: "s1", date: "2025-03-20", amount: 9000, mode: "UPI", receiptNo: "RC0002",
+                    note: "2nd installment" },
+                { id: "f3", studentId: "s2", date: "2025-02-09", amount: 14000, mode: "Bank Transfer",
+                    receiptNo: "RC0003", note: "Full payment" },
+                { id: "f4", studentId: "s3", date: "2025-02-25", amount: 15000, mode: "UPI", receiptNo: "RC0004",
+                    note: "Full payment" },
+                { id: "f5", studentId: "s4", date: "2025-06-28", amount: 11000, mode: "Cash", receiptNo: "RC0005",
+                    note: "1st installment" },
+            ],
+            placements: [
+                { id: "p1", studentId: "s1", company: "Shakthi Fabricators", role: "Welder", package: "2.4 LPA",
+                    date: "2025-05-20" },
+                { id: "p2", studentId: "s2", company: "Karnataka Power Corp", role: "Electrician", package: "2.6 LPA",
+                    date: "2025-06-01" },
+                { id: "p3", studentId: "s3", company: "Vyapar Solutions", role: "Accounts Assistant",
+                    package: "2.2 LPA", date: "2025-07-10" },
+            ],
+            certificates: [
+                { id: "ct1", studentId: "s1", certNo: "SAK/CERT/2025/001", issueDate: "2025-05-15", grade: "A" },
+                { id: "ct2", studentId: "s2", certNo: "SAK/CERT/2025/002", issueDate: "2025-05-15", grade: "A+" },
+                { id: "ct3", studentId: "s3", certNo: "SAK/CERT/2025/003", issueDate: "2025-07-05", grade: "A" },
+            ],
+            chart_fees: [],
+            chart_depts: [],
+            _meta: { lastReceiptNum: 5 }
+        };
+
+        // ------------------ API SETTINGS ------------------
+        const API = { enabled: false, base: '/admin/api/' };
+        // -------------------------------------------------
+
+        let DATA = JSON.parse(JSON.stringify(SEED));
+
+        async function apiGet(path) {
+            if (!API.enabled) throw new Error("API disabled");
+            const r = await fetch(API.base + path, { credentials: "include" });
+            if (r.status === 401) { location.href = "index.html"; throw new Error("auth"); }
+            if (!r.ok) throw new Error("GET " + path + " failed");
+            return r.json();
+        }
+        async function apiSend(path, method, body) {
+            if (!API.enabled) throw new Error("API disabled");
+            const r = await fetch(API.base + path, {
+                method,
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: body ? JSON.stringify(body) : null,
+            });
+            if (r.status === 401) { location.href = "index.html"; throw new Error("auth"); }
+            if (!r.ok) throw new Error(method + " " + path + " failed");
+            return r.json().catch(() => ({}));
+        }
+
+        let COUNTS = { students: 0, active: 0, completed: 0, collected: 0, pending: 0, placed: 0 };
+
+        /* ===== RECEIPT COUNTER (auto‑adjusted to max existing) ===== */
+        function refreshReceiptCounter() {
+            let maxNum = 0;
+            if (DATA.fees && DATA.fees.length > 0) {
+                DATA.fees.forEach(f => {
+                    const num = parseInt((f.receiptNo || '').replace(/\D/g, ''));
+                    if (num > maxNum) maxNum = num;
+                });
+            }
+            for (const fid in feeCache) {
+                const f = feeCache[fid];
+                const num = parseInt((f.receiptNo || '').replace(/\D/g, ''));
+                if (num > maxNum) maxNum = num;
+            }
+            localStorage.setItem('sakha_receipt_counter', String(maxNum));
+            if (!DATA._meta) DATA._meta = { lastReceiptNum: 0 };
+            DATA._meta.lastReceiptNum = maxNum;
+            return maxNum;
+        }
+
+        function getNextReceiptNumber() {
+            let counter = parseInt(localStorage.getItem('sakha_receipt_counter') || '0');
+            counter++;
+            localStorage.setItem('sakha_receipt_counter', String(counter));
+            if (DATA._meta) DATA._meta.lastReceiptNum = counter;
+            return 'RC' + String(counter).padStart(4, '0');
+        }
+
+        function getCurrentReceiptCounter() {
+            return parseInt(localStorage.getItem('sakha_receipt_counter') || '0');
+        }
+
+        function resetReceiptCounter() {
+            if (!confirm("Reset receipt counter to 0? The next receipt will be RC0001. This does not delete any receipts."))
+                return;
+            localStorage.setItem('sakha_receipt_counter', '0');
+            if (DATA._meta) DATA._meta.lastReceiptNum = 0;
+            toast("Receipt counter reset to 0. Next receipt will be RC0001.");
+            renderSettings();
+        }
+
+        async function bootData() {
+            if (API.enabled) {
+                try {
+                    const all = await apiGet("all.html");
+                    DATA.institute = all.institute || JSON.parse(JSON.stringify(SEED.institute));
+                    DATA.courses = all.courses || [];
+                    DATA.batches = all.batches || [];
+                    DATA.placements = all.placements || [];
+                    DATA.certificates = all.certificates || [];
+                    DATA.chart_fees = all.chart_fees || [];
+                    DATA.chart_depts = all.chart_depts || [];
+                    DATA.students = [];
+                    DATA.fees = [];
+                    COUNTS = all.counts || COUNTS;
+                    if (all._meta && all._meta.lastReceiptNum) {
+                        DATA._meta = all._meta;
+                    } else {
+                        DATA._meta = DATA._meta || { lastReceiptNum: 0 };
+                    }
+                    try {
+                        const feeRes = await apiGet("fees.html?list=1&per=9999");
+                        if (feeRes && feeRes.rows) {
+                            DATA.fees = feeRes.rows;
+                            feeCache = {};
+                            DATA.fees.forEach(f => feeCache[f.id] = f);
+                        }
+                    } catch (e) { /* ignore */ }
+                    refreshReceiptCounter();
+                } catch (e) {
+                    if (e.message !== "auth") {
+                        console.warn("API failed, falling back to localStorage", e);
+                        loadLocalData();
+                    }
+                }
+            } else {
+                loadLocalData();
+            }
+        }
+
+        function loadLocalData() {
+            try {
+                const r = localStorage.getItem(DB_KEY);
+                if (r) {
+                    DATA = JSON.parse(r);
+                } else {
+                    DATA = JSON.parse(JSON.stringify(SEED));
+                }
+            } catch (e) {
+                DATA = JSON.parse(JSON.stringify(SEED));
+            }
+            if (!DATA._meta) DATA._meta = { lastReceiptNum: 0 };
+            refreshReceiptCounter();
+            recomputeDemoCounts();
+        }
+
+        function recomputeDemoCounts() {
+            COUNTS = {
+                students: DATA.students.length,
+                active: DATA.students.filter(s => s.status === "Active").length,
+                completed: DATA.students.filter(s => s.status === "Completed").length,
+                collected: DATA.fees.reduce((a, f) => a + Number(f.amount), 0),
+                pending: DATA.students.reduce((a, s) => a + studentDue(s.id), 0),
+                placed: DATA.placements.length,
+            };
+        }
+
+        const STU_PER = 50;
+        const FEE_PER = 50;
+
+        // ------------------ TRASH TOGGLE (Admin only) ------------------
+        let showTrash = false;
+
+        
+        async function restoreStudent(id) {
+            if (!isAdmin) return;
+            if (!confirm("Restore this student and all related records?")) return;
+            await apiGet("students.html?restore=" + encodeURIComponent(id));
+            toast("Student restored");
+            renderStudents();
+        }
+
+        async function permanentDeleteStudent(id) {
+            if (!isAdmin) return;
+            if (!confirm("⚠️ PERMANENTLY DELETE this student and all related records? This action CANNOT be undone!")) return;
+            await apiGet("students.html?permanent_delete=" + encodeURIComponent(id));
+            toast("Student permanently deleted");
+            renderStudents();
+        }
+
+        async function restoreFee(id) {
+            if (!isAdmin) return;
+            if (!confirm("Restore this fee?")) return;
+            await apiGet("fees.html?restore=" + encodeURIComponent(id));
+            toast("Fee restored");
+            renderFees();
+        }
+
+        async function permanentDeleteFee(id) {
+            if (!isAdmin) return;
+            if (!confirm("⚠️ PERMANENTLY DELETE this fee? This action CANNOT be undone!")) return;
+            await apiGet("fees.html?permanent_delete=" + encodeURIComponent(id));
+            toast("Fee permanently deleted");
+            renderFees();
+        }
+
+        async function restorePlacement(id) {
+            if (!isAdmin) return;
+            if (!confirm("Restore this placement?")) return;
+            await apiGet("placements.html?restore=" + encodeURIComponent(id));
+            toast("Placement restored");
+            renderPlacements();
+        }
+
+        async function permanentDeletePlacement(id) {
+            if (!isAdmin) return;
+            if (!confirm("⚠️ PERMANENTLY DELETE this placement? This action CANNOT be undone!")) return;
+            await apiGet("placements.html?permanent_delete=" + encodeURIComponent(id));
+            toast("Placement permanently deleted");
+            renderPlacements();
+        }
+
+        async function restoreCertificate(id) {
+            if (!isAdmin) return;
+            if (!confirm("Restore this certificate?")) return;
+            await apiGet("certificates.html?restore=" + encodeURIComponent(id));
+            toast("Certificate restored");
+            renderCertificates();
+        }
+
+        async function permanentDeleteCertificate(id) {
+            if (!isAdmin) return;
+            if (!confirm("⚠️ PERMANENTLY DELETE this certificate? This action CANNOT be undone!")) return;
+            await apiGet("certificates.html?permanent_delete=" + encodeURIComponent(id));
+            toast("Certificate permanently deleted");
+            renderCertificates();
+        }
+
+        async function restoreCourse(id) {
+            if (!isAdmin) return;
+            if (!confirm("Restore this course?")) return;
+            await apiGet("courses.html?restore=" + encodeURIComponent(id));
+            toast("Course restored");
+            renderCourses();
+        }
+
+        async function permanentDeleteCourse(id) {
+            if (!isAdmin) return;
+            if (!confirm("⚠️ PERMANENTLY DELETE this course? This action CANNOT be undone!")) return;
+            await apiGet("courses.html?permanent_delete=" + encodeURIComponent(id));
+            toast("Course permanently deleted");
+            renderCourses();
+        }
+
+        async function restoreBatch(id) {
+            if (!isAdmin) return;
+            if (!confirm("Restore this batch?")) return;
+            await apiGet("batches.html?restore=" + encodeURIComponent(id));
+            toast("Batch restored");
+            renderCourses();
+        }
+
+        async function permanentDeleteBatch(id) {
+            if (!isAdmin) return;
+            if (!confirm("⚠️ PERMANENTLY DELETE this batch? This action CANNOT be undone!")) return;
+            await apiGet("batches.html?permanent_delete=" + encodeURIComponent(id));
+            toast("Batch permanently deleted");
+            renderCourses();
+        }
+
+        function toggleTrash() {
+            if (!isAdmin) return;
+            showTrash = !showTrash;
+            const activeView = document.querySelector('.view.active');
+            if (activeView) {
+                const viewId = activeView.id.replace('view-', '');
+                go(viewId);
+            }
+        }
+
+        // ----- existing functions ----
+        async function listStudents({ page = 1, per = STU_PER, q = "", status = "", sort = "name", feeStatus = "" } = {}) {
+            if (API.enabled) {
+                const qs = new URLSearchParams({
+                    list: "1",
+                    page,
+                    per,
+                    q,
+                    status,
+                    sort,
+                    feeStatus,
+                    trash: (isAdmin && showTrash) ? '1' : ''
+                });
+                return apiGet("students.html?" + qs.toString());
+            }
+            // fallback local
+            let data = DATA.students.slice();
+            const t = q.toLowerCase();
+            if (t) {
+                data = data.filter(s =>
+                    s.name.toLowerCase().includes(t) ||
+                    (s.reg || "").toLowerCase().includes(t) ||
+                    (s.phone || "").includes(t) ||
+                    (s.aadhar || "").includes(t)
+                );
+            }
+            if (status) data = data.filter(s => s.status === status);
+            if (feeStatus === "paid") data = data.filter(s => studentDue(s.id) <= 0);
+            else if (feeStatus === "pending") data = data.filter(s => studentDue(s.id) > 0);
+            if (sort === "name") data.sort((a, b) => a.name.localeCompare(b.name));
+            else if (sort === "admitDate") data.sort((a, b) => (b.admitDate || "").localeCompare(a.admitDate || ""));
+            const total = data.length;
+            const pages = Math.ceil(total / per);
+            const start = (page - 1) * per;
+            const rows = data.slice(start, start + per);
+            rows.forEach(s => studentCache[s.id] = s);
+            return { rows, page, pages, total, per };
+        }
+
+        async function listFees({ page = 1, per = FEE_PER, q = "" } = {}) {
+            if (API.enabled) {
+                const qs = new URLSearchParams({
+                    list: "1",
+                    page,
+                    per,
+                    q,
+                    trash: (isAdmin && showTrash) ? '1' : ''
+                });
+                return apiGet("fees.html?" + qs.toString());
+            }
+            // fallback local
+            let data = DATA.fees.slice();
+            const t = q.toLowerCase();
+            if (t) {
+                data = data.filter(f =>
+                    (f.receiptNo || "").toLowerCase().includes(t) ||
+                    (f.studentName || "").toLowerCase().includes(t)
+                );
+            }
+            data.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+            const total = data.length;
+            const pages = Math.ceil(total / per);
+            const start = (page - 1) * per;
+            const rows = data.slice(start, start + per);
+            rows.forEach(f => {
+                const s = studentById(f.studentId);
+                f.studentName = s ? s.name : "—";
+            });
+            return { rows, page, pages, total, per };
+        }
+
+        function pager(id, page, pages, total, fn) {
+            if (pages <= 1) return `<div class="px-4 py-3 text-xs text-[var(--muted)]">${total} record${total===1?"":"s"}</div>`;
+            const btn = (p, label, dis) =>
+                `<button ${dis?"disabled":""} onclick="${fn}(${p})" class="px-3 py-1.5 rounded-lg text-sm font-semibold ${dis?"text-slate-300":"text-[var(--blue)] hover:bg-slate-100"}">${label}</button>`;
+            return `<div class="flex items-center justify-between gap-2 px-4 py-3 border-t border-[var(--line)] text-xs text-[var(--muted)]"><span>Page ${page} of ${pages} · ${total} records</span><div class="flex items-center gap-1">${btn(page-1,"‹ Prev",page<=1)}${btn(page+1,"Next ›",page>=pages)}</div></div>`;
+        }
+
+        function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t);
+                t = setTimeout(() => fn(...a), ms); }; }
+
+        function save() {
+            if (!API.enabled) {
+                localStorage.setItem(DB_KEY, JSON.stringify(DATA));
+            }
+        }
+
+        async function apiUpsert(resource, record, isEdit) {
+            if (!API.enabled) return;
+            try {
+                if (isEdit) await apiSend(resource + ".html?id=" + encodeURIComponent(record.id), "PUT", record);
+                else { const res = await apiSend(resource + ".html", "POST", record); if (res && res.id) record.id = res
+                        .id; }
+            } catch (e) { toast("Server save failed"); }
+        }
+
+        async function apiRemove(resource, id) {
+            if (!API.enabled) return;
+            try { await apiSend(resource + ".html?id=" + encodeURIComponent(id), "DELETE"); } catch (e) { toast(
+                    "Server delete failed"); }
+        }
+
+        async function apiSaveInstitute() { if (!API.enabled) return; try { await apiSend("institute.html", "PUT", DATA
+                    .institute); } catch (e) { toast("Server save failed"); } }
+
+        function courseName(id) { const c = DATA.courses.find(c => c.id === id); return c ? c.name : "—"; }
+
+        function courseById(id) { return DATA.courses.find(c => c.id === id); }
+
+        function studentById(id) { return DATA.students.find(s => s.id === id) || studentCache[id]; }
+
+        function batchById(id) { return DATA.batches.find(b => b.id === id); }
+
+        
+        function studentPaid(id) {
+            if (API.enabled) {
+               
+                if (DATA.fees && DATA.fees.length > 0) {
+                    const total = DATA.fees.filter(f => f.studentId === id).reduce((a, f) => a + Number(f.amount), 0);
+                    // If this student has fees in DATA.fees, return the total
+                    if (DATA.fees.some(f => f.studentId === id)) {
+                        return total;
+                    }
+                }
+                // Fallback: use feeCache (may be incomplete, but better than nothing)
+                let total = 0;
+                for (const fid in feeCache) {
+                    const f = feeCache[fid];
+                    if (f.studentId === id) total += Number(f.amount);
+                }
+                return total;
+            }
+            return DATA.fees.filter(f => f.studentId === id).reduce((a, f) => a + Number(f.amount), 0);
+        }
+
+        function studentFee(id) {
+            const s = studentById(id);
+            if (!s) return 0;
+            // If the API provided courseFee directly, use it
+            if (s.courseFee != null) return Number(s.courseFee);
+            const c = courseById(s.courseId);
+            return c ? c.fee : 0;
+        }
+
+        function studentDue(id) { return Math.max(0, studentFee(id) - studentPaid(id)); }
+
+        function toast(msg) { const t = document.getElementById("toast");
+            t.textContent = msg;
+            t.classList.remove("hidden");
+            setTimeout(() => t.classList.add("hidden"), 2200); }
+
+        function openModal(title, html) { document.getElementById("modalTitle").textContent = title;
+            document.getElementById("modalBody").innerHTML = html;
+            document.getElementById("modal").classList.add("open"); }
+
+        function closeModal() { document.getElementById("modal").classList.remove("open"); }
+
+        function statusBadge(s) {
+            const m = { Active: "background:#e7f6ee;color:#1faa59", Completed: "background:#e8f0fb;color:#1d6fb8",
+                Dropped: "background:#fdecee;color:#dc3545", Ongoing: "background:#fff2e0;color:#e07f0a" };
+            return `<span class="badge" style="${m[s] || m.Active}">${s}</span>`;
+        }
+
+        function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
+                    ">": "&gt;", '"': "&quot;" })[c]); }
+
+        /* ============================ RENDERERS ============================ */
+        function renderAll() { renderDashboard();
+            renderStudents();
+            renderAdmissions();
+            renderCourses();
+            renderFees();
+            renderPlacements();
+            renderCertificates();
+            renderBatchStudents();
+            renderSettings(); }
+
+        let chart1, chart2;
+
+        function renderDashboard() {
+            const active = COUNTS.active;
+            const completed = COUNTS.completed;
+            const runningCourses = new Set(DATA.batches.filter(b => b.status === "Ongoing").map(b => b.courseId)).size;
+            const placed = COUNTS.placed || DATA.placements.length;
+            const placementRate = completed ? Math.round((placed / completed) * 100) : 0;
+            const totalCollected = COUNTS.collected;
+            const totalDue = COUNTS.pending;
+            const el = document.getElementById("view-dashboard");
+            el.innerHTML = `
+              <div class="fade-in rounded-2xl p-5 sm:p-6 text-white flex flex-wrap items-center justify-between gap-4 relative overflow-hidden mb-6" style="background:linear-gradient(120deg,var(--navy),var(--blue))">
+                <div class="relative z-10"><p class="text-white/70 text-sm">Welcome back, ${isViewer ? 'Viewer' : 'Admin'}</p>
+                  <h2 class="font-head font-bold text-2xl">Your campus at a glance</h2>
+                  <p class="text-white/70 text-sm mt-1">${DATA.batches.filter(b => b.status === "Completed").length} batches completed · ${DATA.certificates.length} certificates issued</p></div>
+                ${isAdmin ? `<button class="btn btn-accent relative z-10" onclick="go('admissions');setTimeout(()=>admissionForm(),50)">+ New Admission</button>` : `<span class="readonly-badge relative z-10">👁️ View Only</span>`}
+                <div class="absolute -right-8 -top-8 w-48 h-48 rounded-full bg-white/10"></div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+                ${kpi("🎓", active, "Active Students", "#e8f0fb", "var(--blue)")}
+                ${kpi("✅", completed, "Completed Students", "#e7f6ee", "var(--green)")}
+                ${kpi("📚", runningCourses, "Running Courses", "#efeaff", "#7c5cff")}
+                ${kpi("💼", placementRate + "%", "Placement Rate", "#fff2e0", "var(--accent)")}
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                ${kpi("💰", INR(totalCollected), "Fees Collected", "#e7f6ee", "var(--green)")}
+                ${kpi("⏳", INR(totalDue), "Fees Pending (Excluding Dropped)", "#fdecee", "var(--red)")}
+                ${kpi("👥", COUNTS.students, "Total Enrolled", "#e8f0fb", "var(--navy)")}
+              </div>
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-[var(--line)] p-5 shadow-sm">
+                  <h3 class="font-head font-semibold text-[var(--navy)] mb-4">Fees Collection (by month)</h3><div class="h-64"><canvas id="chart1"></canvas></div></div>
+                <div class="bg-white rounded-2xl border border-[var(--line)] p-5 shadow-sm">
+                  <h3 class="font-head font-semibold text-[var(--navy)] mb-4">Students by Department</h3><div class="h-64"><canvas id="chart2"></canvas></div></div>
+              </div>`;
+            drawCharts();
+        }
+
+        function kpi(icon, val, label, bg, color) {
+            return `<div class="fade-in bg-white rounded-2xl border border-[var(--line)] p-5 shadow-sm"><div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl mb-3" style="background:${bg}">${icon}</div><p class="text-2xl font-head font-bold" style="color:${color}">${val}</p><p class="text-sm text-[var(--muted)]">${label}</p></div>`;
+        }
+
+        function drawCharts() {
+            if (!document.getElementById("chart1")) return;
+            if (!DATA.chart_fees || DATA.chart_fees.length === 0) {
+                const map = {};
+                DATA.fees.forEach(f => {
+                    const m = f.date ? f.date.slice(0, 7) : '2025-01';
+                    map[m] = (map[m] || 0) + Number(f.amount);
+                });
+                DATA.chart_fees = Object.keys(map).sort().map(k => ({ month: k, total: map[k] }));
+            }
+            const feeLabels = DATA.chart_fees ? DATA.chart_fees.map(f => f.month) : [];
+            const feeData = DATA.chart_fees ? DATA.chart_fees.map(f => Number(f.total)) : [];
+            if (chart1) chart1.destroy();
+            chart1 = new Chart(document.getElementById("chart1"), {
+                type: "bar",
+                data: {
+                    labels: feeLabels.length ? feeLabels : ["No Data"],
+                    datasets: [{
+                        label: "₹ Collected",
+                        data: feeData.length ? feeData : [0],
+                        backgroundColor: "#1d6fb8",
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { grid: { color: "#eef2f7" }, border: { display: false }, beginAtZero: true }
+                    }
+                }
+            });
+            if (!DATA.chart_depts || DATA.chart_depts.length === 0) {
+                const map = {};
+                DATA.students.forEach(s => {
+                    const c = courseById(s.courseId);
+                    const d = c ? c.dept : 'Unknown';
+                    map[d] = (map[d] || 0) + 1;
+                });
+                DATA.chart_depts = Object.keys(map).map(k => ({ dept: k, count: map[k] }));
+            }
+            const deptLabels = DATA.chart_depts ? DATA.chart_depts.map(d => d.dept) : [];
+            const deptData = DATA.chart_depts ? DATA.chart_depts.map(d => Number(d.count)) : [];
+            if (chart2) chart2.destroy();
+            chart2 = new Chart(document.getElementById("chart2"), {
+                type: "doughnut",
+                data: {
+                    labels: deptLabels.length ? deptLabels : ["No Data"],
+                    datasets: [{
+                        data: deptData.length ? deptData : [1],
+                        backgroundColor: ["#1d6fb8", "#f7941d", "#0f2c4d", "#1faa59", "#7c5cff"],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "62%",
+                    plugins: {
+                        legend: {
+                            position: "bottom",
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8,
+                                padding: 12,
+                                font: { family: "Open Sans" }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ---------- STUDENTS ---------- */
+        let studentQuery = "",
+            stuPage = 1,
+            stuStatus = "",
+            stuFeeStatus = "";
+        let studentCache = {};
+
+
+        async function renderStudents() {
+            // Fetch all students (ignore feeStatus on server)
+            const res = await listStudents({
+                page: 1,
+                per: 9999,
+                q: studentQuery,
+                status: stuStatus,
+                sort: "name",
+                feeStatus: "" // server-side fee filter disabled
+            });
+            let rows = res.rows;
+
+            // Apply local feeStatus filter using studentDue()
+            if (stuFeeStatus === "paid") {
+                rows = rows.filter(s => studentDue(s.id) <= 0);
+            } else if (stuFeeStatus === "pending") {
+                rows = rows.filter(s => studentDue(s.id) > 0);
+            }
+
+            // Re-paginate locally
+            const per = STU_PER;
+            const total = rows.length;
+            const pages = Math.ceil(total / per);
+            const start = (stuPage - 1) * per;
+            const pageRows = rows.slice(start, start + per);
+
+            // Cache students for later use
+            pageRows.forEach(s => studentCache[s.id] = s);
+
+            const dueCell = (s) => {
+                const fee = (s.courseFee != null) ? Number(s.courseFee) : studentFee(s.id);
+                const paid = (s.paid != null) ? Number(s.paid) : studentPaid(s.id);
+                const due = Math.max(0, fee - paid);
+                return due > 0 ? `<span class="text-[var(--red)] font-semibold">Due ${INR(due)}</span>` :
+                               `<span class="text-[var(--green)] font-semibold">Paid</span>`;
+            };
+
+            document.getElementById("view-students").innerHTML = `
+              <div class="flex flex-wrap gap-3 items-center justify-between mb-5">
+                <div class="flex flex-wrap gap-2 items-center">
+                  <div class="relative"><input id="stuSearch" value="${esc(studentQuery)}" placeholder="Search name / reg / phone / aadhar" class="field pl-9" style="width:300px"><svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg></div>
+                  <select id="stuStatus" class="field" style="width:150px"><option value="">All statuses</option>${["Active","Completed","Dropped"].map(o => `<option ${stuStatus===o?"selected":""}>${o}</option>`).join("")}</select>
+                  <div class="flex gap-1">
+                    <button id="feeAll" class="btn btn-ghost text-xs" style="padding:0.4rem 0.8rem;">All</button>
+                    <button id="feePaid" class="btn btn-ghost text-xs" style="padding:0.4rem 0.8rem;">Paid</button>
+                    <button id="feePending" class="btn btn-ghost text-xs" style="padding:0.4rem 0.8rem;">Pending</button>
+                  </div>
+                  ${isAdmin ? `<button class="btn btn-ghost" onclick="toggleTrash()">${showTrash ? 'Hide Trash' : '🗑 Trash'}</button>` : ''}
+                </div>
+                <div class="flex gap-2">
+                  <button class="btn btn-ghost" onclick="printList('students')">🖨 Print List</button>
+                  ${isAdmin ? `<button class="btn btn-primary" onclick="studentForm()">+ Add Student</button>` : `<span class="readonly-badge" style="display:inline-flex;align-items:center;padding:0.4rem 1rem;">👁️ Read Only</span>`}
+                </div>
+              </div>
+              <div class="bg-white rounded-2xl border border-[var(--line)] shadow-sm overflow-hidden">
+                <div class="overflow-x-auto"><table class="w-full text-sm">
+                  <thead><tr class="text-left text-[var(--muted)] text-xs uppercase tracking-wide bg-slate-50">
+                    <th class="px-4 py-3 font-semibold">Reg No</th>
+                    <th class="px-4 py-3 font-semibold">Name</th>
+                    <th class="px-4 py-3 font-semibold">Course</th>
+                    <th class="px-4 py-3 font-semibold">Phone</th>
+                    <th class="px-4 py-3 font-semibold">Qualification</th>
+                    <th class="px-4 py-3 font-semibold">Fees</th>
+                    <th class="px-4 py-3 font-semibold">Status</th>
+                    <th class="px-4 py-3 font-semibold text-right">Actions</th>
+                  </tr></thead>
+                  <tbody class="divide-y divide-[var(--line)]">
+                  ${pageRows.map(s => `<tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-mono text-xs">${esc(s.reg)}</td>
+                    <td class="px-4 py-3 font-semibold">${esc(s.name)}<div class="text-xs text-[var(--muted)] font-normal">${esc(s.gender)}</div></td>
+                    <td class="px-4 py-3 text-[var(--muted)]">${esc(courseName(s.courseId))}</td>
+                    <td class="px-4 py-3 text-[var(--muted)]">${esc(s.phone)}</td>
+                    <td class="px-4 py-3 text-[var(--muted)]">${esc(s.qualification || '—')}</td>
+                    <td class="px-4 py-3">${dueCell(s)}</td>
+                    <td class="px-4 py-3">${statusBadge(s.status)}</td>
+                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                      <button class="text-[var(--blue)] font-semibold mr-2" onclick="viewStudent('${s.id}')">View</button>
+                      ${isAdmin ? 
+                        (showTrash ? 
+                          `<button class="text-[var(--green)] mr-2" onclick="restoreStudent('${s.id}')">Restore</button>
+                           <button class="text-[var(--red)]" onclick="permanentDeleteStudent('${s.id}')">Permanent Delete</button>` :
+                          `<button class="text-[var(--muted)] mr-2" onclick="studentForm('${s.id}')">Edit</button>
+                           <button class="text-[var(--red)]" onclick="delStudent('${s.id}')">Delete</button>`
+                        ) : `<span class="text-xs text-[var(--muted)]"></span>`
+                      }
+                    </td></tr>`).join("") || `<tr><td colspan="9" class="px-4 py-10 text-center text-[var(--muted)]">No students found.</td></tr>`}
+                  </tbody></table></div>
+                ${pager("stu", stuPage, pages, total, "gotoStudents")}
+              </div>`;
+            // Re-attach event listeners
+            const inp = document.getElementById("stuSearch");
+            if (inp) inp.oninput = debounce(() => { studentQuery = inp.value; stuPage = 1; renderStudents(); }, 280);
+            const sel = document.getElementById("stuStatus");
+            if (sel) sel.onchange = () => { stuStatus = sel.value; stuPage = 1; renderStudents(); };
+            const feeAll = document.getElementById("feeAll");
+            if (feeAll) feeAll.onclick = () => { stuFeeStatus = ""; stuPage = 1; renderStudents(); };
+            const feePaid = document.getElementById("feePaid");
+            if (feePaid) feePaid.onclick = () => { stuFeeStatus = "paid"; stuPage = 1; renderStudents(); };
+            const feePending = document.getElementById("feePending");
+            if (feePending) feePending.onclick = () => { stuFeeStatus = "pending"; stuPage = 1; renderStudents(); };
+        }
+
+        function gotoStudents(p) { stuPage = p;
+            renderStudents(); }
+
+        async function generateRegNumber(admitDate) {
+            let year = new Date().getFullYear();
+            if (admitDate) {
+                const d = new Date(admitDate);
+                if (!isNaN(d)) year = d.getFullYear();
+            }
+            const prefix = 'MIS' + year;
+            let maxNum = 0;
+            if (API.enabled) {
+                try {
+                    const res = await listStudents({ page: 1, per: 9999, q: '' });
+                    res.rows.forEach(s => {
+                        if (s.reg && s.reg.startsWith(prefix)) {
+                            const num = parseInt(s.reg.substring(prefix.length), 10);
+                            if (num > maxNum) maxNum = num;
+                        }
+                    });
+                } catch (e) { /* fallback to local */ }
+            } else {
+                DATA.students.forEach(s => {
+                    if (s.reg && s.reg.startsWith(prefix)) {
+                        const num = parseInt(s.reg.substring(prefix.length), 10);
+                        if (num > maxNum) maxNum = num;
+                    }
+                });
+            }
+            const nextNum = maxNum + 1;
+            return prefix + String(nextNum).padStart(3, '0');
+        }
+
+        function studentForm(id) {
+            if (!isAdmin) return;
+            const s = id ? studentById(id) : {};
+            const opts = DATA.courses.map(c =>
+                `<option value="${c.id}" ${s.courseId===c.id?"selected":""}>${esc(c.name)}</option>`).join("");
+            const bopts = DATA.batches.map(b =>
+                `<option value="${b.id}" ${s.batchId===b.id?"selected":""}>${esc(b.name)} — ${esc(courseName(b.courseId))}</option>`
+                ).join("");
+            const regValue = id ? esc(s.reg) : '';
+            openModal(id ? "Edit Student" : "Add Student", `
+              <form onsubmit="saveStudent(event,'${id||""}')" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><label class="lbl">Full Name *</label><input name="name" class="field" required value="${esc(s.name)}"></div>
+                <div><label class="lbl">Reg No</label><input name="reg" class="field" value="${regValue}" placeholder="Auto-generated on save"></div>
+                <div><label class="lbl">Gender</label><select name="gender" class="field"><option ${s.gender==="Male"?"selected":""}>Male</option><option ${s.gender==="Female"?"selected":""}>Female</option><option ${s.gender==="Other"?"selected":""}>Other</option></select></div>
+                <div><label class="lbl">Phone *</label><input name="phone" class="field" required value="${esc(s.phone)}"></div>
+                <div><label class="lbl">Aadhar Number</label><input name="aadhar" class="field" value="${esc(s.aadhar)}" placeholder="12-digit Aadhar"></div>
+                <div><label class="lbl">Qualification</label><input name="qualification" class="field" value="${esc(s.qualification)}" placeholder="e.g. B.Sc, 12th, Diploma"></div>
+                <div><label class="lbl">Email</label><input name="email" type="email" class="field" value="${esc(s.email)}"></div>
+                <div><label class="lbl">Date of Birth</label><input name="dob" type="date" class="field" value="${esc(s.dob)}"></div>
+                <div><label class="lbl">Course *</label><select name="courseId" class="field" required>${opts}</select></div>
+                <div><label class="lbl">Batch</label><select name="batchId" class="field"><option value="">—</option>${bopts}</select></div>
+                <div><label class="lbl">Guardian</label><input name="guardian" class="field" value="${esc(s.guardian)}"></div>
+                <div><label class="lbl">Admission Date</label><input name="admitDate" type="date" class="field" value="${esc(s.admitDate || today())}"></div>
+                <div class="sm:col-span-2"><label class="lbl">Address</label><input name="address" class="field" value="${esc(s.address)}"></div>
+                <div><label class="lbl">Status</label><select name="status" class="field"><option ${s.status==="Active"?"selected":""}>Active</option><option ${s.status==="Completed"?"selected":""}>Completed</option><option ${s.status==="Dropped"?"selected":""}>Dropped</option></select></div>
+                <div class="sm:col-span-2 flex justify-end gap-2 mt-2"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary">Save Student</button></div>
+              </form>`);
+        }
+
+        async function afterStudentChange() {
+            if (API.enabled) { try { const a = await apiGet("all.html");
+                    COUNTS = a.counts || COUNTS; } catch (e) {} } else recomputeDemoCounts();
+            renderDashboard();
+            await renderStudents();
+        }
+
+        async function saveStudent(e, id) {
+            if (!isAdmin) return;
+            e.preventDefault();
+            const f = Object.fromEntries(new FormData(e.target));
+            let rec;
+            if (API.enabled) {
+                rec = { ...f };
+                if (!id && (!rec.reg || rec.reg.trim() === '')) {
+                    rec.reg = await generateRegNumber(rec.admitDate || today());
+                }
+                if (id) rec.id = id;
+                await apiUpsert("students", rec, !!id);
+            } else {
+                if (id) {
+                    rec = studentById(id);
+                    Object.assign(rec, f);
+                } else {
+                    if (!f.reg || f.reg.trim() === '') {
+                        f.reg = await generateRegNumber(f.admitDate || today());
+                    }
+                    f.id = uid("s");
+                    DATA.students.push(f);
+                    rec = f;
+                }
+                save();
+            }
+            closeModal();
+            toast(id ? "Student updated" : "Student added (Reg: " + rec.reg + ")");
+            await afterStudentChange();
+        }
+
+        async function delStudent(id) {
+            if (!isAdmin) return;
+            if (!confirm("Delete this student and related fees/records? They will be moved to trash and can be restored.")) return;
+            if (API.enabled) { await apiRemove("students", id); } else { DATA.students = DATA.students.filter(s => s.id !==
+                    id);
+                DATA.fees = DATA.fees.filter(f => f.studentId !== id);
+                DATA.placements = DATA.placements.filter(p => p.studentId !== id);
+                DATA.certificates = DATA.certificates.filter(c => c.studentId !== id);
+                save(); }
+            toast("Student moved to trash");
+            await afterStudentChange();
+        }
+
+        async function viewStudent(id) {
+            const s = studentById(id);
+            if (!s) return;
+            const c = courseById(s.courseId);
+            const b = batchById(s.batchId);
+            // Use courseFee from student if available, else from course
+            const fee = (s.courseFee != null) ? Number(s.courseFee) : (c ? c.fee : 0);
+            let paid = 0;
+            if (API.enabled) {
+                try {
+                    const res = await apiGet("fees.html?sum=1&studentId=" + encodeURIComponent(id));
+                    paid = res.paid || 0;
+                } catch (e) { paid = studentPaid(id); }
+            } else {
+                paid = studentPaid(id);
+            }
+            const due = Math.max(0, fee - paid);
+            const html = `
+              <div class="flex items-center gap-4 mb-4">
+                <div class="w-14 h-14 rounded-full bg-[var(--navy)] text-white flex items-center justify-center font-head font-bold text-lg">${esc(s.name.slice(0,2).toUpperCase())}</div>
+                <div>
+                  <p class="font-head font-bold text-lg">${esc(s.name)}</p>
+                  <p class="text-sm text-[var(--muted)]">${esc(s.reg)} · ${statusBadge(s.status)}</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                ${row("Course", courseName(s.courseId))}
+                ${row("Batch", b ? b.name : "—")}
+                ${row("Phone", s.phone)}
+                ${row("Email", s.email || "—")}
+                ${row("Aadhar", s.aadhar || "—")}
+                ${row("Qualification", s.qualification || "—")}
+                ${row("Gender", s.gender)}
+                ${row("DOB", fmtDate(s.dob))}
+                ${row("Guardian", s.guardian || "—")}
+                ${row("Admitted", fmtDate(s.admitDate))}
+                ${row("Address", s.address || "—")}
+                ${row("Course Fee", INR(fee))}
+                ${row("Paid", INR(paid))}
+                ${row("Due", INR(due))}
+              </div>
+              <div class="flex flex-wrap justify-end gap-2 mt-5">
+                <button class="btn btn-ghost" onclick="printAdmission('${id}')">🖨 Admission Form</button>
+                ${isAdmin ? `
+                  <button class="btn btn-accent" onclick="feeForm('${id}')">💰 Add Payment</button>
+                 <!-- <button class="text-[var(--muted)] mr-2" onclick="studentForm('${s.id}')">Edit</button> -->` : ''
+                }
+              </div>
+            `;
+            openModal("Student Profile", html);
+        }
+
+        function row(k, v) { return `<div><p class="text-[var(--muted)] text-xs">${k}</p><p class="font-semibold">${esc(v)}</p></div>`; }
+
+        /* ---------- ADMISSIONS ---------- */
+        let admQuery = "",
+            admPage = 1,
+            admStatus = "",
+            admDateFrom = "",
+            admDateTo = "";
+
+        async function renderAdmissions() {
+            const res = await listStudents({
+                page: 1,
+                per: 9999,
+                q: admQuery,
+                status: admStatus,
+                sort: "admitDate"
+            });
+            res.rows.forEach(s => studentCache[s.id] = s);
+
+            let rows = res.rows;
+            if (admDateFrom) {
+                rows = rows.filter(s => s.admitDate && s.admitDate >= admDateFrom);
+            }
+            if (admDateTo) {
+                rows = rows.filter(s => s.admitDate && s.admitDate <= admDateTo);
+            }
+            rows.sort((a, b) => (b.admitDate || '').localeCompare(a.admitDate || ''));
+            const per = 50;
+            const total = rows.length;
+            const pages = Math.ceil(total / per);
+            const start = (admPage - 1) * per;
+            const pageRows = rows.slice(start, start + per);
+            if (total === 0) admPage = 1;
+
+            document.getElementById("view-admissions").innerHTML = `
+                    <div class="flex flex-wrap gap-3 items-center justify-between mb-5">
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <div class="relative">
+                                <input id="admSearch" value="${esc(admQuery)}" placeholder="Search name / reg / phone" class="field pl-9" style="width:280px">
+                                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+                            </div>
+                            <select id="admStatus" class="field" style="width:150px">
+                                <option value="">All statuses</option>
+                                ${["Active","Completed","Dropped"].map(o => `<option ${admStatus===o?"selected":""}>${o}</option>`).join("")}
+                            </select>
+                            <div class="flex items-center gap-1">
+    <label class="text-xs text-[var(--muted)]">From</label>
+    <input type="date" id="admDateFrom" class="field" style="width:140px" value="${esc(admDateFrom)}">
+    <label class="text-xs text-[var(--muted)]">To</label>
+    <input type="date" id="admDateTo" class="field" style="width:140px" value="${esc(admDateTo)}">
+    <button class="btn btn-ghost" onclick="printAdmissionsList()" style="padding:0.4rem 0.8rem;">🖨 Print</button>
+</div>
+                        </div>
+                        <div class="flex gap-2">
+                            ${isAdmin ? `<button class="btn btn-accent" onclick="admissionForm()">+ New Admission</button>` : `<span class="readonly-badge">👁️ Read Only</span>`}
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-[var(--line)] shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-left text-[var(--muted)] text-xs uppercase bg-slate-50">
+                                        <th class="px-4 py-3 font-semibold">Reg No</th>
+                                        <th class="px-4 py-3 font-semibold">Name</th>
+                                        <th class="px-4 py-3 font-semibold">Course</th>
+                                        <th class="px-4 py-3 font-semibold">Admit Date</th>
+                                        <th class="px-4 py-3 font-semibold">Status</th>
+                                        <th class="px-4 py-3 text-right font-semibold">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[var(--line)]">
+                                    ${pageRows.map(s => `
+                                        <tr class="hover:bg-slate-50">
+                                            <td class="px-4 py-3 font-mono text-xs">${esc(s.reg)}</td>
+                                            <td class="px-4 py-3 font-semibold">${esc(s.name)}</td>
+                                            <td class="px-4 py-3 text-[var(--muted)]">${esc(courseName(s.courseId))}</td>
+                                            <td class="px-4 py-3 text-[var(--muted)]">${fmtDate(s.admitDate)}</td>
+                                            <td class="px-4 py-3">${statusBadge(s.status)}</td>
+                                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                                <button class="text-[var(--blue)] font-semibold mr-2" onclick="printAdmission('${s.id}')">🖨 Print</button>
+                                                ${isAdmin ? `<button class="text-[var(--muted)] mr-2" onclick="studentForm('${s.id}')">Edit</button>` : ""}
+                                            </td>
+                                        </tr>
+                                    `).join("") || `<tr><td colspan="6" class="px-4 py-10 text-center text-[var(--muted)]">No students found.</td></tr>`}
+                                </tbody>
+                            </table>
+                        </div>
+                        ${pager("adm", admPage, pages, total, "gotoAdmissions")}
+                    </div>
+                `;
+
+            const inp = document.getElementById("admSearch");
+            if (inp) inp.oninput = debounce(() => {
+                admQuery = inp.value;
+                admPage = 1;
+                renderAdmissions();
+            }, 280);
+            const sel = document.getElementById("admStatus");
+            if (sel) sel.onchange = () => {
+                admStatus = sel.value;
+                admPage = 1;
+                renderAdmissions();
+            };
+            const from = document.getElementById("admDateFrom");
+            const to = document.getElementById("admDateTo");
+            if (from) from.onchange = () => {
+                admDateFrom = from.value;
+                admPage = 1;
+                renderAdmissions();
+            };
+            if (to) to.onchange = () => {
+                admDateTo = to.value;
+                admPage = 1;
+                renderAdmissions();
+            };
+        }
+
+        function gotoAdmissions(p) {
+            admPage = p;
+            renderAdmissions();
+        }
+
+        function admissionForm() { if (isAdmin) studentForm(); }
+
+        /* ---------- COURSES & BATCHES ---------- */
+        async function renderCourses() {
+            let courses, batches;
+            if (API.enabled) {
+                const q = (isAdmin && showTrash) ? '?trash=1' : '';
+                courses = await apiGet("courses.html" + q);
+                batches = await apiGet("batches.html" + q);
+            } else {
+                courses = DATA.courses;
+                batches = DATA.batches;
+            }
+            const courseHTML = courses.map(c => {
+                const cnt = API.enabled ? "—" : DATA.students.filter(s => s.courseId === c.id).length;
+                return `<div class="bg-white rounded-xl border border-[var(--line)] p-4 shadow-sm flex items-center justify-between gap-3">
+                      <div><p class="font-semibold">${esc(c.name)}</p><p class="text-xs text-[var(--muted)]">${esc(c.dept)} · ${esc(c.duration)} · ${INR(c.fee)} · ${cnt}/${c.seats} enrolled</p></div>
+                      <div class="whitespace-nowrap">
+                        ${isAdmin ? 
+                          (showTrash ? 
+                            `<button class="text-[var(--green)] mr-2 text-sm font-semibold" onclick="restoreCourse('${c.id}')">Restore</button>
+                             <button class="text-[var(--red)] text-sm font-semibold" onclick="permanentDeleteCourse('${c.id}')">Permanent Delete</button>` :
+                            `<button class="text-[var(--muted)] mr-2 text-sm font-semibold" onclick="courseForm('${c.id}')">Edit</button>
+                             <button class="text-[var(--red)] text-sm font-semibold" onclick="delCourse('${c.id}')">Delete</button>`
+                          ) : `<span class="text-xs text-[var(--muted)]"></span>`
+                        }
+                      </div>
+                    </div>`;
+            }).join("");
+
+            const batchHTML = batches.map(b => `
+                    <div class="bg-white rounded-xl border border-[var(--line)] p-4 shadow-sm flex items-center justify-between gap-3">
+                      <div><p class="font-semibold">${esc(b.name)} — ${esc(courseName(b.courseId))}</p><p class="text-xs text-[var(--muted)]">${fmtDate(b.start)} → ${fmtDate(b.end)} · ${esc(b.trainer||"")} </p><div class="mt-1">${statusBadge(b.status)}</div></div>
+                      <div class="whitespace-nowrap">
+                        ${isAdmin ? 
+                          (showTrash ? 
+                            `<button class="text-[var(--green)] mr-2 text-sm font-semibold" onclick="restoreBatch('${b.id}')">Restore</button>
+                             <button class="text-[var(--red)] text-sm font-semibold" onclick="permanentDeleteBatch('${b.id}')">Permanent Delete</button>` :
+                            `<button class="text-[var(--muted)] mr-2 text-sm font-semibold" onclick="batchForm('${b.id}')">Edit</button>
+                             <button class="text-[var(--red)] text-sm font-semibold" onclick="delBatch('${b.id}')">Delete</button>`
+                          ) : `<span class="text-xs text-[var(--muted)]"></span>`
+                        }
+                      </div>
+                    </div>`).join("");
+
+            document.getElementById("view-courses").innerHTML = `
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <h2 class="font-head font-bold text-lg text-[var(--navy)]">Courses & Batches</h2>
+                  ${isAdmin ? `<button class="btn btn-ghost" onclick="toggleTrash()">${showTrash ? 'Hide Trash' : '🗑 Trash'}</button>` : ''}
+                </div>
+                <div>
+                  ${isAdmin ? `
+                    <button class="btn btn-primary" onclick="courseForm()">+ Add Course</button>
+                    <button class="btn btn-primary" onclick="batchForm()">+ Add Batch</button>` : `<span class="readonly-badge">👁️ Read Only</span>`
+                  }
+                </div>
+              </div>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <div class="flex items-center justify-between mb-4"><h3 class="font-head font-semibold text-[var(--navy)]">Courses</h3></div>
+                  <div class="space-y-3">${courseHTML || '<p class="text-[var(--muted)]">No courses found.</p>'}</div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between mb-4"><h3 class="font-head font-semibold text-[var(--navy)]">Batches</h3></div>
+                  <div class="space-y-3">${batchHTML || '<p class="text-[var(--muted)]">No batches found.</p>'}</div>
+                </div>
+              </div>`;
+        }
+
+        function courseForm(id) {
+            if (!isAdmin) return;
+            const c = id ? courseById(id) : {};
+            openModal(id ? "Edit Course" : "Add Course", `
+              <form onsubmit="saveCourse(event,'${id||""}')" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2"><label class="lbl">Course Name *</label><input name="name" class="field" required value="${esc(c.name)}"></div>
+                <div><label class="lbl">Department</label><select name="dept" class="field">${["Mechanical","Electrical","Computer","Spoken English"].map(d => `<option ${c.dept===d?"selected":""}>${d}</option>`).join("")}</select></div>
+                <div><label class="lbl">Duration</label><input name="duration" class="field" value="${esc(c.duration||"3 Months")}"></div>
+                <div><label class="lbl">Fee (₹)</label><input name="fee" type="number" class="field" value="${esc(c.fee||0)}"></div>
+                <div><label class="lbl">Seats</label><input name="seats" type="number" class="field" value="${esc(c.seats||30)}"></div>
+                <div class="sm:col-span-2 flex justify-end gap-2 mt-2"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary">Save</button></div>
+              </form>`);
+        }
+
+        async function saveCourse(e, id) {
+            if (!isAdmin) return;
+            e.preventDefault();
+            const f = Object.fromEntries(new FormData(e.target));
+            f.fee = +f.fee;
+            f.seats = +f.seats;
+            let rec;
+            if (id) { rec = courseById(id);
+                Object.assign(rec, f); } else { f.id = uid("c");
+                DATA.courses.push(f);
+                rec = f; }
+            save();
+            await apiUpsert("courses", rec, !!id);
+            renderAll();
+            closeModal();
+            toast("Course saved");
+        }
+
+        async function delCourse(id) {
+            if (!isAdmin) return;
+            if (!confirm("Delete this course? It will be moved to trash and can be restored.")) return;
+            DATA.courses = DATA.courses.filter(c => c.id !== id);
+            save();
+            await apiRemove("courses", id);
+            renderAll();
+            toast("Course moved to trash");
+        }
+
+        function batchForm(id) {
+            if (!isAdmin) return;
+            const b = id ? batchById(id) : {};
+            const opts = DATA.courses.map(c =>
+                `<option value="${c.id}" ${b.courseId===c.id?"selected":""}>${esc(c.name)}</option>`).join("");
+            openModal(id ? "Edit Batch" : "Add Batch", `
+              <form onsubmit="saveBatch(event,'${id||""}')" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><label class="lbl">Batch Name *</label><input name="name" class="field" required value="${esc(b.name)}"></div>
+                <div><label class="lbl">Course</label><select name="courseId" class="field">${opts}</select></div>
+                <div><label class="lbl">Start</label><input name="start" type="date" class="field" value="${esc(b.start)}"></div>
+                <div><label class="lbl">End</label><input name="end" type="date" class="field" value="${esc(b.end)}"></div>
+                <div><label class="lbl">Trainer</label><input name="trainer" class="field" value="${esc(b.trainer)}"></div>
+                <div><label class="lbl">Status</label><select name="status" class="field">${["Ongoing","Completed","Upcoming"].map(s => `<option ${b.status===s?"selected":""}>${s}</option>`).join("")}</select></div>
+                <div class="sm:col-span-2 flex justify-end gap-2 mt-2"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary">Save</button></div>
+              </form>`);
+        }
+
+        async function saveBatch(e, id) {
+            if (!isAdmin) return;
+            e.preventDefault();
+            const f = Object.fromEntries(new FormData(e.target));
+            let rec;
+            if (id) { rec = batchById(id);
+                Object.assign(rec, f); } else { f.id = uid("b");
+                DATA.batches.push(f);
+                rec = f; }
+            save();
+            await apiUpsert("batches", rec, !!id);
+            renderAll();
+            closeModal();
+            toast("Batch saved");
+        }
+
+        async function delBatch(id) {
+            if (!isAdmin) return;
+            if (!confirm("Delete this batch? It will be moved to trash and can be restored.")) return;
+            DATA.batches = DATA.batches.filter(b => b.id !== id);
+            save();
+            await apiRemove("batches", id);
+            renderAll();
+            toast("Batch moved to trash");
+        }
+
+        /* ---------- FEES ---------- */
+        let feeQuery = "",
+            feePage = 1;
+        let feeCache = {};
+
+        async function renderFees() {
+            const res = await listFees({ page: feePage, per: FEE_PER, q: feeQuery });
+            feePage = res.page;
+            feeCache = {};
+            res.rows.forEach(f => feeCache[f.id] = f);
+            const list = res.rows;
+            const total = COUNTS.collected;
+            document.getElementById("view-fees").innerHTML = `
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+                ${kpi("💰", INR(total), "Total Collected", "#e7f6ee", "var(--green)")}
+                ${kpi("🧾", res.total, "Receipts Issued", "#e8f0fb", "var(--blue)")}
+                ${kpi("👥", COUNTS.students, "Students", "#fff2e0", "var(--accent)")}
+              </div>
+              <div class="flex flex-wrap gap-3 justify-between items-center mb-4">
+                <div class="relative"><input id="feeSearch" value="${esc(feeQuery)}" placeholder="Search receipt / student" class="field pl-9" style="width:280px"><svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg></div>
+                <div class="flex gap-2">
+                  <button class="btn btn-ghost" onclick="printAllReceipts()">🖨 Print All Receipts</button>
+                  ${isAdmin ? `<button class="btn btn-ghost" onclick="toggleTrash()">${showTrash ? 'Hide Trash' : '🗑 Trash'}</button>` : ''}
+                  ${isAdmin ? `<button class="btn btn-accent" onclick="feeForm()">+ Record Payment</button>` : `<span class="readonly-badge">👁️ Read Only</span>`}
+                </div>
+              </div>
+              <div class="bg-white rounded-2xl border border-[var(--line)] shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-sm">
+                <thead><tr class="text-left text-[var(--muted)] text-xs uppercase bg-slate-50"><th class="px-4 py-3 font-semibold">Receipt</th><th class="px-4 py-3 font-semibold">Student</th><th class="px-4 py-3 font-semibold">Date</th><th class="px-4 py-3 font-semibold">Mode</th><th class="px-4 py-3 font-semibold">Amount</th><th class="px-4 py-3 text-right font-semibold">Actions</th></tr></thead>
+                <tbody class="divide-y divide-[var(--line)]">${list.map(f => `<tr class="hover:bg-slate-50"><td class="px-4 py-3 font-mono text-xs">${esc(f.receiptNo)}</td><td class="px-4 py-3 font-semibold">${esc(f.studentName||"—")}</td><td class="px-4 py-3 text-[var(--muted)]">${fmtDate(f.date)}</td><td class="px-4 py-3 text-[var(--muted)]">${esc(f.mode)}</td><td class="px-4 py-3 font-semibold text-[var(--green)]">${INR(f.amount)}</td><td class="px-4 py-3 text-right whitespace-nowrap">
+                    ${showTrash ? 
+                      (isAdmin ? 
+                        `<button class="text-[var(--green)] mr-2" onclick="restoreFee('${f.id}')">Restore</button>
+                         <button class="text-[var(--red)]" onclick="permanentDeleteFee('${f.id}')">Permanent Delete</button>` :
+                        `<span class="text-xs text-[var(--muted)]"></span>`
+                      ) : 
+                      `<button class="text-[var(--blue)] font-semibold mr-2" onclick="printReceipt('${f.id}')">🖨 Receipt</button>
+                       ${isAdmin ? `<button class="text-[var(--red)] font-semibold" onclick="delFee('${f.id}')">Delete</button>` : `<span class="text-xs text-[var(--muted)]"></span>`}`}
+                  </td></tr>`).join("") || `<tr><td colspan="6" class="px-4 py-10 text-center text-[var(--muted)]">No payments found.</td></tr>`}</tbody></table></div>
+                ${pager("fee", res.page, res.pages, res.total, "gotoFees")}</div>`;
+            const inp = document.getElementById("feeSearch");
+            if (inp) inp.oninput = debounce(() => { feeQuery = inp.value;
+                    feePage = 1;
+                    renderFees().then(() => { const n = document.getElementById("feeSearch"); if (n) { n.focus();
+                            n.setSelectionRange(n.value.length, n.value.length); } }); }, 280);
+        }
+
+        function gotoFees(p) { feePage = p;
+            renderFees(); }
+
+        function studentPickerHTML(preId, preLabel) {
+            return `<div class="relative" data-picker="1">
+              <input class="field stu-pick-input" placeholder="Type name / reg no…" autocomplete="off" value="${esc(preLabel||"")}">
+              <input type="hidden" name="studentId" class="stu-pick-id" value="${esc(preId||"")}" required>
+              <div class="stu-pick-list hidden absolute z-10 left-0 right-0 mt-1 bg-white border border-[var(--line)] rounded-lg shadow-lg max-h-56 overflow-auto"></div>
+            </div>`;
+        }
+
+        function wireStudentPicker(scope, onPick) {
+            const box = scope.querySelector("[data-picker]");
+            if (!box) return;
+            const inp = box.querySelector(".stu-pick-input"),
+                hid = box.querySelector(".stu-pick-id"),
+                list = box.querySelector(".stu-pick-list");
+            const run = debounce(async () => {
+                const q = inp.value.trim();
+                const res = await listStudents({ page: 1, per: 8, q });
+                res.rows.forEach(s => studentCache[s.id] = s);
+                list.innerHTML = res.rows.map(s =>
+                    `<button type="button" data-id="${s.id}" data-label="${esc(s.name)} (${esc(s.reg)})" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50">${esc(s.name)} <span class="text-[var(--muted)]">${esc(s.reg)}</span></button>`
+                    ).join("") || `<div class="px-3 py-2 text-sm text-[var(--muted)]">No match</div>`;
+                list.classList.remove("hidden");
+            }, 220);
+            inp.addEventListener("input", () => { hid.value = "";
+                run(); });
+            inp.addEventListener("focus", run);
+            list.addEventListener("click", (e) => {
+                const b = e.target.closest("button[data-id]");
+                if (!b) return;
+                hid.value = b.dataset.id;
+                inp.value = b.dataset.label;
+                list.classList.add("hidden");
+                if (onPick) onPick(b.dataset.id);
+            });
+            document.addEventListener("click", (e) => { if (!box.contains(e.target)) list.classList.add("hidden"); });
+        }
+
+        async function feeForm(studentId) {
+            if (!isAdmin) return;
+            let preLabel = "";
+            if (studentId) {
+                const s = studentById(studentId) || (await listStudents({ page: 1, per: 1, q: studentId })).rows[0];
+                if (s) preLabel = `${s.name} (${s.reg})`;
+            }
+            openModal("Record Payment", `
+              <form id="feeFormEl" onsubmit="saveFee(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2"><label class="lbl">Student *</label>${studentPickerHTML(studentId, preLabel)}<p id="dueHint" class="text-xs text-[var(--muted)] mt-1"></p></div>
+                <div><label class="lbl">Amount (₹) *</label><input name="amount" type="number" class="field" required></div>
+                <div><label class="lbl">Date</label><input name="date" type="date" class="field" value="${today()}"></div>
+                <div><label class="lbl">Mode</label><select name="mode" class="field"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Card</option><option>Cheque</option></select></div>
+                <div class="sm:col-span-2"><label class="lbl">Note</label><input name="note" class="field" placeholder="e.g. 1st installment"></div>
+                <div class="sm:col-span-2 text-xs text-[var(--muted)] bg-slate-50 p-2 rounded">Receipt number will be automatically generated upon saving.</div>
+                <div class="sm:col-span-2 flex justify-end gap-2 mt-2"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-accent">Save &amp; Print Receipt</button></div>
+              </form>`);
+            const el = document.getElementById("feeFormEl");
+            wireStudentPicker(el, (id) => feeDueHint(id));
+            if (studentId) feeDueHint(studentId);
+        }
+
+        async function feeDueHint(id) {
+            const el = document.getElementById("dueHint");
+            if (!el) return;
+            let paid = 0;
+            if (API.enabled) {
+                try { const r = await apiGet("fees.html?sum=1&studentId=" + encodeURIComponent(id));
+                    paid = r.paid || 0; } catch (e) { paid = studentPaid(id); }
+            } else {
+                paid = studentPaid(id);
+            }
+            const fee = studentFee(id);
+            el.textContent = `Fee: ${INR(fee)} · Paid: ${INR(paid)} · Due: ${INR(Math.max(0, fee - paid))}`;
+        }
+
+        async function saveFee(e) {
+            if (!isAdmin) return;
+            e.preventDefault();
+            const f = Object.fromEntries(new FormData(e.target));
+            f.amount = +f.amount;
+            if (!f.studentId) { toast("Please pick a student"); return; }
+
+            const receiptNo = getNextReceiptNumber();
+            f.receiptNo = receiptNo;
+
+            let newId;
+            if (API.enabled) {
+                const res = await apiSend("fees.html", "POST", f);
+                newId = res && res.id ? res.id : null;
+                if (newId) {
+                    if (!DATA.fees) DATA.fees = [];
+                    DATA.fees.push({ ...f, id: newId });
+                }
+                // Refresh fees list to keep DATA.fees in sync
+                try {
+                    const feeRes = await apiGet("fees.html?list=1&per=9999");
+                    if (feeRes && feeRes.rows) {
+                        DATA.fees = feeRes.rows;
+                        feeCache = {};
+                        DATA.fees.forEach(fee => feeCache[fee.id] = fee);
+                    }
+                } catch (e) {}
+            } else {
+                f.id = uid("f");
+                DATA.fees.push(f);
+                save();
+                newId = f.id;
+            }
+            closeModal();
+            toast("Payment recorded. Receipt #" + receiptNo);
+            if (API.enabled) { try { const a = await apiGet("all.html");
+                    COUNTS = a.counts || COUNTS; } catch (e) {} } else recomputeDemoCounts();
+            renderDashboard();
+            feePage = 1;
+            await renderFees();
+            if (newId) {
+                setTimeout(() => printReceipt(newId), 300);
+            }
+        }
+
+        async function delFee(id) {
+            if (!isAdmin) return;
+            if (!confirm("Delete this payment? It will be moved to trash and can be restored.")) return;
+            if (API.enabled) { 
+                await apiRemove("fees", id);
+                // Refresh fees list to keep DATA.fees in sync
+                try {
+                    const feeRes = await apiGet("fees.html?list=1&per=9999");
+                    if (feeRes && feeRes.rows) {
+                        DATA.fees = feeRes.rows;
+                        feeCache = {};
+                        DATA.fees.forEach(fee => feeCache[fee.id] = fee);
+                    }
+                } catch (e) {}
+            } else { 
+                DATA.fees = DATA.fees.filter(f => f.id !== id);
+                save(); 
+            }
+            refreshReceiptCounter();
+            toast("Payment moved to trash");
+            if (API.enabled) { try { const a = await apiGet("all.html");
+                    COUNTS = a.counts || COUNTS; } catch (e) {} } else recomputeDemoCounts();
+            renderDashboard();
+            await renderFees();
+        }
+
+        /* ---------- PLACEMENTS ---------- */
+        async function renderPlacements() {
+            let placements;
+            if (API.enabled) {
+                const q = (isAdmin && showTrash) ? '?trash=1' : '';
+                placements = await apiGet("placements.html" + q);
+            } else {
+                placements = DATA.placements;
+            }
+            const rowsHTML = placements.map(p => {
+                const s = studentById(p.studentId);
+                const nm = p.studentName || (s && s.name) || "—";
+                return `<tr class="hover:bg-slate-50"><td class="px-4 py-3 font-semibold">${esc(nm)}</td><td class="px-4 py-3">${esc(p.company)}</td><td class="px-4 py-3 text-[var(--muted)]">${esc(p.role)}</td><td class="px-4 py-3 font-semibold text-[var(--green)]">${esc(p.package)}</td><td class="px-4 py-3 text-[var(--muted)]">${fmtDate(p.date)}</td><td class="px-4 py-3 text-right whitespace-nowrap">
+                    ${isAdmin ? 
+                      (showTrash ? 
+                        `<button class="text-[var(--green)] mr-2" onclick="restorePlacement('${p.id}')">Restore</button>
+                         <button class="text-[var(--red)]" onclick="permanentDeletePlacement('${p.id}')">Permanent Delete</button>` :
+                        `<button class="text-[var(--muted)] mr-2" onclick="placeForm('${p.id}')">Edit</button>
+                         <button class="text-[var(--red)]" onclick="delPlace('${p.id}')">Delete</button>`
+                      ) : `<span class="text-xs text-[var(--muted)]"></span>`
+                    }
+                  </td></tr>`;
+            }).join("") || `<tr><td colspan="6" class="px-4 py-10 text-center text-[var(--muted)]">No placements yet.</td></tr>`;
+            document.getElementById("view-placements").innerHTML = `
+              <div class="flex justify-between items-center mb-5">
+                <h2 class="font-head font-bold text-lg text-[var(--navy)]">Placements</h2>
+                <div class="flex gap-2">
+                  ${isAdmin ? `<button class="btn btn-ghost" onclick="toggleTrash()">${showTrash ? 'Hide Trash' : '🗑 Trash'}</button>` : ''}
+                  ${isAdmin ? `<button class="btn btn-primary" onclick="placeForm()">+ Add Placement</button>` : `<span class="readonly-badge">👁️ Read Only</span>`}
+                </div>
+              </div>
+              <div class="bg-white rounded-2xl border border-[var(--line)] shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-sm">
+                <thead><tr class="text-left text-[var(--muted)] text-xs uppercase bg-slate-50"><th class="px-4 py-3 font-semibold">Student</th><th class="px-4 py-3 font-semibold">Company</th><th class="px-4 py-3 font-semibold">Role</th><th class="px-4 py-3 font-semibold">Package</th><th class="px-4 py-3 font-semibold">Date</th><th class="px-4 py-3 text-right font-semibold">Actions</th></tr></thead>
+                <tbody class="divide-y divide-[var(--line)]">${rowsHTML}</tbody></table></div></div>`;
+        }
+
+        function placeForm(id) {
+            if (!isAdmin) return;
+            const p = id ? DATA.placements.find(x => x.id === id) : {};
+            const preLabel = p.studentName ? `${p.studentName}` : "";
+            openModal(id ? "Edit Placement" : "Add Placement", `<form id="placeFormEl" onsubmit="savePlace(event,'${id||""}')" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="sm:col-span-2"><label class="lbl">Student *</label>${studentPickerHTML(p.studentId, preLabel)}</div>
+              <div><label class="lbl">Company *</label><input name="company" class="field" required value="${esc(p.company)}"></div>
+              <div><label class="lbl">Role</label><input name="role" class="field" value="${esc(p.role)}"></div>
+              <div><label class="lbl">Package</label><input name="package" class="field" placeholder="2.4 LPA" value="${esc(p.package)}"></div>
+              <div><label class="lbl">Date</label><input name="date" type="date" class="field" value="${esc(p.date||today())}"></div>
+              <div class="sm:col-span-2 flex justify-end gap-2 mt-2"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary">Save</button></div>
+            </form>`);
+            wireStudentPicker(document.getElementById("placeFormEl"));
+        }
+
+        async function savePlace(e, id) {
+            if (!isAdmin) return;
+            e.preventDefault();
+            const f = Object.fromEntries(new FormData(e.target));
+            if (!f.studentId) { toast("Please pick a student"); return; }
+            if (API.enabled) {
+                const rec = { ...f };
+                if (id) rec.id = id;
+                await apiUpsert("placements", rec, !!id);
+                DATA.placements = await apiGet("placements.html");
+            } else {
+                let rec;
+                if (id) { rec = DATA.placements.find(x => x.id === id);
+                    Object.assign(rec, f); } else { f.id = uid("p");
+                    DATA.placements.push(f);
+                    rec = f; }
+                save();
+            }
+            closeModal();
+            toast("Placement saved");
+            renderPlacements();
+            renderDashboard();
+        }
+
+        async function delPlace(id) {
+            if (!isAdmin) return;
+            if (!confirm("Delete this placement? It will be moved to trash and can be restored.")) return;
+            if (API.enabled) { await apiRemove("placements", id);
+                DATA.placements = await apiGet("placements.html"); } else { DATA.placements = DATA.placements.filter(p => p
+                    .id !== id);
+                save(); }
+            toast("Placement moved to trash");
+            renderPlacements();
+            renderDashboard();
+        }
+
+        /* ---------- CERTIFICATES ---------- */
+        async function renderCertificates() {
+            let certificates;
+            if (API.enabled) {
+                const q = (isAdmin && showTrash) ? '?trash=1' : '';
+                certificates = await apiGet("certificates.html" + q);
+            } else {
+                certificates = DATA.certificates;
+            }
+            const rowsHTML = certificates.map(ct => {
+                const s = studentById(ct.studentId);
+                const nm = ct.studentName || (s && s.name) || "—";
+                const crs = ct.courseId ? courseName(ct.courseId) : (s ? courseName(s.courseId) : "");
+                return `<tr class="hover:bg-slate-50"><td class="px-4 py-3 font-mono text-xs">${esc(ct.certNo)}</td><td class="px-4 py-3 font-semibold">${esc(nm)}</td><td class="px-4 py-3 text-[var(--muted)]">${esc(crs)}</td><td class="px-4 py-3 font-semibold">${esc(ct.grade)}</td><td class="px-4 py-3 text-[var(--muted)]">${fmtDate(ct.issueDate)}</td><td class="px-4 py-3 text-right whitespace-nowrap">
+                    ${isAdmin ? 
+                      (showTrash ? 
+                        `<button class="text-[var(--green)] mr-2" onclick="restoreCertificate('${ct.id}')">Restore</button>
+                         <button class="text-[var(--red)]" onclick="permanentDeleteCertificate('${ct.id}')">Permanent Delete</button>` :
+                        `<button class="text-[var(--blue)] mr-2" onclick="printCert('${ct.id}')">🖨 Print</button>
+                         <button class="text-[var(--red)]" onclick="delCert('${ct.id}')">Delete</button>`
+                      ) : `<span class="text-xs text-[var(--muted)]"></span>`
+                    }
+                  </td></tr>`;
+            }).join("") || `<tr><td colspan="6" class="px-4 py-10 text-center text-[var(--muted)]">No certificates issued.</td></tr>`;
+            document.getElementById("view-certificates").innerHTML = `
+              <div class="flex justify-between items-center mb-5">
+                <h2 class="font-head font-bold text-lg text-[var(--navy)]">Certificates</h2>
+                <div class="flex gap-2">
+                  ${isAdmin ? `<button class="btn btn-ghost" onclick="toggleTrash()">${showTrash ? 'Hide Trash' : '🗑 Trash'}</button>` : ''}
+                  ${isAdmin ? `<button class="btn btn-primary" onclick="certForm()">+ Issue Certificate</button>` : `<span class="readonly-badge">👁️ Read Only</span>`}
+                </div>
+              </div>
+              <div class="bg-white rounded-2xl border border-[var(--line)] shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-sm">
+                <thead><tr class="text-left text-[var(--muted)] text-xs uppercase bg-slate-50"><th class="px-4 py-3 font-semibold">Cert No</th><th class="px-4 py-3 font-semibold">Student</th><th class="px-4 py-3 font-semibold">Course</th><th class="px-4 py-3 font-semibold">Grade</th><th class="px-4 py-3 font-semibold">Issued</th><th class="px-4 py-3 text-right font-semibold">Actions</th></tr></thead>
+                <tbody class="divide-y divide-[var(--line)]">${rowsHTML}</tbody></table></div></div>`;
+        }
+
+        function certForm(id) {
+            if (!isAdmin) return;
+            const ct = id ? DATA.certificates.find(x => x.id === id) : {};
+            const preLabel = ct.studentName ? `${ct.studentName}` : "";
+            openModal(id ? "Edit Certificate" : "Issue Certificate", `<form id="certFormEl" onsubmit="saveCert(event,'${id||""}')" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="sm:col-span-2"><label class="lbl">Student *</label>${studentPickerHTML(ct.studentId, preLabel)}</div>
+              <div><label class="lbl">Certificate No</label><input name="certNo" class="field" value="${esc(ct.certNo||nextCert())}"></div>
+              <div><label class="lbl">Grade</label><select name="grade" class="field">${["A+","A","B+","B","C","Pass"].map(g => `<option ${ct.grade===g?"selected":""}>${g}</option>`).join("")}</select></div>
+              <div><label class="lbl">Issue Date</label><input name="issueDate" type="date" class="field" value="${esc(ct.issueDate||today())}"></div>
+              <div class="sm:col-span-2 flex justify-end gap-2 mt-2"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary">Save</button></div>
+            </form>`);
+            wireStudentPicker(document.getElementById("certFormEl"));
+        }
+
+        function nextCert() {
+            if (API.enabled) return "SAK/CERT/2025/" + Date.now().toString().slice(-4);
+            const n = DATA.certificates.length + 1;
+            return "SAK/CERT/2025/" + String(n).padStart(3, "0");
+        }
+
+        async function saveCert(e, id) {
+            if (!isAdmin) return;
+            e.preventDefault();
+            const f = Object.fromEntries(new FormData(e.target));
+            if (!f.studentId) { toast("Please pick a student"); return; }
+            if (API.enabled) {
+                const rec = { ...f };
+                if (id) rec.id = id;
+                await apiUpsert("certificates", rec, !!id);
+                DATA.certificates = await apiGet("certificates.html");
+            } else {
+                let rec;
+                if (id) { rec = DATA.certificates.find(x => x.id === id);
+                    Object.assign(rec, f); } else { f.id = uid("ct");
+                    DATA.certificates.push(f);
+                    rec = f; }
+                save();
+            }
+            closeModal();
+            toast("Certificate saved");
+            renderCertificates();
+            renderDashboard();
+        }
+
+        async function delCert(id) {
+            if (!isAdmin) return;
+            if (!confirm("Delete this certificate? It will be moved to trash and can be restored.")) return;
+            if (API.enabled) { await apiRemove("certificates", id);
+                DATA.certificates = await apiGet("certificates.html"); } else { DATA.certificates = DATA.certificates.filter(
+                    c => c.id !== id);
+                save(); }
+            toast("Certificate moved to trash");
+            renderCertificates();
+            renderDashboard();
+        }
+
+        /* ========== BATCH STUDENT REPORT (LOCAL FIRST) ========== */
+        let batchData = [];
+        let currentCourseId = null;
+        let currentBatchId = null;
+
+        function buildBatchDataFromLocal() {
+            const result = [];
+            const coursesMap = {};
+            DATA.courses.forEach(c => {
+                coursesMap[c.id] = { courseId: c.id, courseName: c.name, batches: [] };
+            });
+            DATA.batches.forEach(b => {
+                const entry = coursesMap[b.courseId];
+                if (entry) {
+                    const students = DATA.students.filter(s => s.batchId === b.id);
+                    entry.batches.push({
+                        batchId: b.id,
+                        batchName: b.name,
+                        batchStatus: b.status,
+                        start: b.start,
+                        students: students.map(s => ({
+                            reg: s.reg,
+                            studentName: s.name,
+                            studentStatus: s.status,
+                            gender: s.gender,
+                            phone: s.phone,
+                            email: s.email,
+                            guardian: s.guardian,
+                            address: s.address,
+                            admitDate: s.admitDate
+                        }))
+                    });
+                }
+            });
+            Object.values(coursesMap).forEach(entry => {
+                if (entry.batches.length > 0) {
+                    result.push(entry);
+                }
+            });
+            return result;
+        }
+
+        async function renderBatchStudents() {
+            const el = document.getElementById('view-batchStudents');
+            el.innerHTML = `
+                    <div class="flex justify-between items-center mb-5">
+                        <h2 class="font-head font-bold text-lg text-[var(--navy)]">Batch‑wise Student List</h2>
+                        <button class="btn btn-ghost" onclick="printFullBatchReport()">🖨 Print Full Report</button>
+                    </div>
+                    <div id="batchReportContent" class="bg-white rounded-2xl border border-[var(--line)] shadow-sm p-5">
+                        <div class="text-center text-[var(--muted)] py-8">Loading batch data…</div>
+                    </div>
+                `;
+            try {
+                let data;
+                if (API.enabled) {
+                    try {
+                        data = await apiGet('batch_students.html');
+                    } catch (e) {
+                        data = buildBatchDataFromLocal();
+                    }
+                } else {
+                    data = buildBatchDataFromLocal();
+                }
+                batchData = data;
+                currentCourseId = null;
+                currentBatchId = null;
+                if (!batchData || batchData.length === 0) {
+                    document.querySelector('#batchReportContent').innerHTML =
+                        `<div class="text-center text-[var(--muted)] py-8">No courses with batches found.</div>`;
+                    return;
+                }
+                showCourses();
+            } catch (e) {
+                batchData = buildBatchDataFromLocal();
+                currentCourseId = null;
+                currentBatchId = null;
+                if (!batchData || batchData.length === 0) {
+                    document.querySelector('#batchReportContent').innerHTML =
+                        `<div class="text-center text-[var(--muted)] py-8">No courses with batches found.</div>`;
+                    return;
+                }
+                showCourses();
+            }
+        }
+
+        function getCourse(cid) {
+            return batchData.find(c => c.courseId === cid);
+        }
+
+        function getBatch(cid, bid) {
+            const course = getCourse(cid);
+            if (!course) return null;
+            return course.batches.find(b => b.batchId === bid);
+        }
+
+        function showCourses() {
+            currentCourseId = null;
+            currentBatchId = null;
+            const container = document.getElementById('batchReportContent');
+            if (!batchData || batchData.length === 0) {
+                container.innerHTML = `<div class="text-center text-[var(--muted)] py-8">No courses found.</div>`;
+                return;
+            }
+            let html =
+                `<div class="flex items-center gap-2 mb-4"><span class="font-head font-bold text-[var(--navy)]">All Courses</span><span class="text-xs text-[var(--muted)]">(click a course to see its batches)</span></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">`;
+            batchData.forEach(course => {
+                const count = course.batches.reduce((acc, b) => acc + b.students.length, 0);
+                html += `<button onclick="showBatches('${course.courseId}')" class="bg-slate-50 hover:bg-slate-100 rounded-xl p-4 text-left border border-[var(--line)] transition">
+                        <h3 class="font-head font-semibold text-[var(--navy)]">${esc(course.courseName)}</h3>
+                        <p class="text-xs text-[var(--muted)]">${course.batches.length} batches · ${count} students</p>
+                    </button>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function showBatches(courseId) {
+            currentCourseId = courseId;
+            currentBatchId = null;
+            const course = getCourse(courseId);
+            if (!course) { showCourses(); return; }
+            const container = document.getElementById('batchReportContent');
+            let html = `
+                    <div class="flex items-center gap-4 mb-4 flex-wrap">
+                        <button onclick="showCourses()" class="btn btn-ghost text-sm">← Back to Courses</button>
+                        <span class="font-head font-bold text-[var(--navy)] text-lg">${esc(course.courseName)}</span>
+                        <span class="text-xs text-[var(--muted)]">(click a batch to see students)</span>
+                    </div>
+                    <div class="space-y-2">`;
+            if (course.batches.length === 0) {
+                html += `<p class="text-[var(--muted)]">No batches for this course.</p>`;
+            } else {
+                course.batches.forEach(batch => {
+                    const badge = batch.batchStatus === 'Ongoing' ?
+                        `<span class="badge" style="background:#fff2e0;color:#e07f0a;">Ongoing</span>` :
+                        batch.batchStatus === 'Completed' ?
+                        `<span class="badge" style="background:#e8f0fb;color:#1d6fb8;">Completed</span>` :
+                        `<span class="badge" style="background:#e7f6ee;color:#1faa59;">${esc(batch.batchStatus)}</span>`;
+                    html += `<button onclick="showStudents('${courseId}','${batch.batchId}')" class="w-full text-left bg-slate-50 hover:bg-slate-100 rounded-xl p-4 border border-[var(--line)] transition">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <span class="font-semibold">${esc(batch.batchName)}</span>
+                                <div class="flex items-center gap-2">
+                                    ${badge}
+                                    <span class="text-xs text-[var(--muted)]">Start: ${fmtDate(batch.start)}</span>
+                                    <span class="text-xs text-[var(--muted)]">Students: ${batch.students.length}</span>
+                                </div>
+                            </div>
+                        </button>`;
+                });
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function showStudents(courseId, batchId) {
+            currentBatchId = batchId;
+            const batch = getBatch(courseId, batchId);
+            if (!batch) { showBatches(courseId); return; }
+            const container = document.getElementById('batchReportContent');
+            let html = `
+                    <div class="flex items-center justify-between mb-4 flex-wrap">
+                        <div class="flex items-center gap-4 flex-wrap">
+                            <button onclick="showBatches('${courseId}')" class="btn btn-ghost text-sm">← Back to Batches</button>
+                            <span class="font-head font-bold text-[var(--navy)] text-lg">${esc(batch.batchName)}</span>
+                            <span class="text-xs text-[var(--muted)]">(${batch.students.length} students)</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="printBatchStudents('${courseId}','${batchId}')">🖨 Print This Batch</button>
+                    </div>`;
+            if (batch.students.length === 0) {
+                html += `<p class="text-[var(--muted)]">No students in this batch.</p>`;
+            } else {
+                html += `<table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-left text-[var(--muted)] text-xs uppercase bg-slate-50">
+                                <th class="px-3 py-2 font-semibold">Reg No</th>
+                                <th class="px-3 py-2 font-semibold">Student Name</th>
+                                <th class="px-3 py-2 font-semibold">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[var(--line)]">`;
+                batch.students.forEach(s => {
+                    html += `<tr>
+                            <td class="px-3 py-2 font-mono text-xs">${esc(s.reg)}</td>
+                            <td class="px-3 py-2 font-semibold">${esc(s.studentName)}</td>
+                            <td class="px-3 py-2">${statusBadge(s.studentStatus)}</td>
+                        </tr>`;
+                });
+                html += `</tbody></table>`;
+            }
+            container.innerHTML = html;
+        }
+
+        /* ---------- PRINT FUNCTIONS ---------- */
+
+        function printFullBatchReport() {
+            let contentHTML = '';
+            const data = batchData.length > 0 ? batchData : buildBatchDataFromLocal();
+            if (!data || data.length === 0) {
+                contentHTML = '<p>No data.</p>';
+            } else {
+                data.forEach(course => {
+                    contentHTML += `<div class="mb-4 border-b border-[var(--line)] pb-4 last:border-0">
+                            <h3 class="font-head font-bold text-[var(--navy)] text-lg mb-2">${esc(course.courseName)}</h3>`;
+                    if (course.batches.length === 0) {
+                        contentHTML += `<p class="text-[var(--muted)] text-sm ml-4">No batches for this course.</p>`;
+                    } else {
+                        course.batches.forEach(batch => {
+                            const badge = batch.batchStatus === 'Ongoing' ?
+                                `<span class="badge" style="background:#fff2e0;color:#e07f0a;">Ongoing</span>` :
+                                batch.batchStatus === 'Completed' ?
+                                `<span class="badge" style="background:#e8f0fb;color:#1d6fb8;">Completed</span>` :
+                                `<span class="badge" style="background:#e7f6ee;color:#1faa59;">${esc(batch.batchStatus)}</span>`;
+                            contentHTML += `<div class="ml-4 mt-2 border-l-2 border-[var(--line)] pl-4">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="font-semibold">${esc(batch.batchName)}</span>
+                                        ${badge}
+                                        <span class="text-xs text-[var(--muted)]">Start: ${fmtDate(batch.start)}</span>
+                                        <span class="text-xs text-[var(--muted)]">Students: ${batch.students.length}</span>
+                                    </div>`;
+                            if (batch.students.length === 0) {
+                                contentHTML += `<p class="text-[var(--muted)] text-sm ml-2">No students in this batch.</p>`;
+                            } else {
+                                contentHTML += `<table class="w-full text-sm mt-2">
+                                        <thead>
+                                            <tr class="text-left text-[var(--muted)] text-xs uppercase bg-slate-50">
+                                                <th class="px-3 py-2 font-semibold">Reg No</th>
+                                                <th class="px-3 py-2 font-semibold">Student Name</th>
+                                                <th class="px-3 py-2 font-semibold">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-[var(--line)]">`;
+                                batch.students.forEach(s => {
+                                    contentHTML += `<tr>
+                                            <td class="px-3 py-2 font-mono text-xs">${esc(s.reg)}</td>
+                                            <td class="px-3 py-2 font-semibold">${esc(s.studentName)}</td>
+                                            <td class="px-3 py-2">${statusBadge(s.studentStatus)}</td>
+                                        </tr>`;
+                                });
+                                contentHTML += `</tbody></table>`;
+                            }
+                            contentHTML += `</div>`;
+                        });
+                    }
+                    contentHTML += `</div>`;
+                });
+            }
+
+            const printHTML = `
+                    <div class="print-doc">
+                        ${printHeader()}
+                        <p class="section-title">Batch‑wise Student List (Full Report)</p>
+                        <div style="margin-top:10px;">
+                            ${contentHTML}
+                        </div>
+                        ${printFooter()}
+                        <div class="print-meta">Generated on ${fmtDate(today())} · sakha</div>
+                    </div>
+                `;
+            doPrint(printHTML);
+        }
+
+        function printBatchStudents(courseId, batchId) {
+            const batch = getBatch(courseId, batchId);
+            if (!batch) { toast("Batch not found"); return; }
+            const course = getCourse(courseId);
+            if (!course) { toast("Course not found"); return; }
+
+            let rowsHTML = '';
+            if (batch.students.length === 0) {
+                rowsHTML =
+                    `<tr><td colspan="9" style="text-align:center;padding:16px;">No students in this batch.</td></tr>`;
+            } else {
+                batch.students.forEach(s => {
+                    rowsHTML += `<tr>
+                            <td style="text-align:center;">${esc(s.reg)}</td>
+                            <td style="font-weight:600;">${esc(s.studentName)}</td>
+                            <td style="text-align:center;">${esc(s.gender || '—')}</td>
+                            <td style="text-align:center;">${esc(s.phone || '—')}</td>
+                            <td>${esc(s.email || '—')}</td>
+                            <td>${esc(s.guardian || '—')}</td>
+                            <td>${esc(s.address || '—')}</td>
+                            <td style="text-align:center;">${fmtDate(s.admitDate)}</td>
+                            <td style="text-align:center;">${statusBadge(s.studentStatus)}</td>
+                        </tr>`;
+                });
+            }
+
+            const printHTML = `
+                    <div class="print-doc">
+                        ${printHeader()}
+                        <p class="section-title">Batch Student List</p>
+                        <div style="margin:6px 0 12px; font-size:13px;">
+                            <strong>Course:</strong> ${esc(course.courseName)} &nbsp;|&nbsp;
+                            <strong>Batch:</strong> ${esc(batch.batchName)} &nbsp;|&nbsp;
+                            <strong>Status:</strong> ${esc(batch.batchStatus)} &nbsp;|&nbsp;
+                            <strong>Start:</strong> ${fmtDate(batch.start)} &nbsp;|&nbsp;
+                            <strong>Students:</strong> ${batch.students.length}
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center;">Reg No</th>
+                                    <th style="text-align:left;">Name</th>
+                                    <th style="text-align:center;">Gender</th>
+                                    <th style="text-align:center;">Phone</th>
+                                    <th style="text-align:left;">Email</th>
+                                    <th style="text-align:left;">Guardian</th>
+                                    <th style="text-align:left;">Address</th>
+                                    <th style="text-align:center;">Admit Date</th>
+                                    <th style="text-align:center;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHTML}
+                            </tbody>
+                        </table>
+                        ${printFooter()}
+                        <div class="print-meta">Generated on ${fmtDate(today())} · sakha</div>
+                    </div>
+                `;
+            doPrint(printHTML);
+        }
+
+        /* ---------- SETTINGS ---------- */
+        function renderSettings() {
+            // Only admins can see settings
+            if (!isAdmin) {
+                document.getElementById("view-settings").innerHTML = `
+                        <div class="text-center py-12">
+                            <h2 class="font-head font-bold text-2xl text-[var(--muted)]">👁️ Access Denied</h2>
+                            <p class="text-[var(--muted)] mt-2">Settings are only available for Administrators.</p>
+                        </div>
+                    `;
+                return;
+            }
+            const i = DATA.institute;
+            const currentCounter = getCurrentReceiptCounter();
+            document.getElementById("view-settings").innerHTML = `
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl border border-[var(--line)] p-5 shadow-sm">
+                  <h3 class="font-head font-bold text-[var(--navy)] mb-4">Institute Details <span class="text-xs font-normal text-[var(--muted)]">(shown on prints)</span></h3>
+                  <form onsubmit="saveInstitute(event)" class="space-y-3">
+                    <div><label class="lbl">Trust Name</label><input name="trust" class="field" value="${esc(i.trust)}" placeholder="e.g. SAKHA TAJ Education & Charitable Trust"></div>
+                    <div><label class="lbl">Institute Name</label><input name="name" class="field" value="${esc(i.name)}"></div>
+                    <div><label class="lbl">Short Name</label><input name="short" class="field" value="${esc(i.short)}"></div>
+                    <div><label class="lbl">Address</label><input name="address" class="field" value="${esc(i.address)}"></div>
+                    <div><label class="lbl">Phone</label><input name="phone" class="field" value="${esc(i.phone)}"></div>
+                    <div><label class="lbl">Email</label><input name="email" class="field" value="${esc(i.email)}"></div>
+                    <div><label class="lbl">Website</label><input name="website" class="field" value="${esc(i.website)}" placeholder="https://..."></div>
+                    <div><label class="lbl">Footer line</label><input name="footer" class="field" value="${esc(i.footer)}"></div>
+                    <div class="flex justify-end"><button class="btn btn-primary">Save Details</button></div>
+                  </form>
+                </div>
+                <div class="bg-white rounded-2xl border border-[var(--line)] p-5 shadow-sm">
+                  <h3 class="font-head font-bold text-[var(--navy)] mb-2">Data Storage</h3>
+                  <p class="text-sm text-[var(--muted)] mb-3">${API.enabled ? "✅ Connected to your <b>MySQL server</b> via PHP. All records are saved in your database and shared across every device." : "⚠️ Running in <b>demo mode</b> — data is stored in this browser only. Upload the exported files to your server and set <code>API.enabled=true</code> to use your MySQL database."}</p>
+                  <div class="flex flex-wrap gap-2">
+                    <button class="btn btn-primary" onclick="exportData()">⬇ Export Backup (.json)</button>
+                    <label class="btn btn-ghost cursor-pointer">⬆ Import Backup<input type="file" accept="application/json" class="hidden" onchange="importData(event)"></label>
+                    ${API.enabled ? `<button class="btn btn-ghost" onclick="logout()">🚪 Logout</button>` : ""}
+                  </div>
+                  <!--
+<hr class="my-5 border-[var(--line)]">
+<h4 class="font-semibold text-[var(--red)] mb-2">Danger Zone</h4>
+<button class="btn btn-danger" onclick="resetData()">Reset to Sample Data</button>
+<div class="mt-3 p-3 bg-slate-50 rounded-lg">
+  <p class="text-sm font-semibold">Receipt Counter: <span class="font-mono">${currentCounter}</span></p>
+  <button class="btn btn-ghost text-sm mt-2" onclick="resetReceiptCounter()">🔁 Reset Counter to 0</button>
+</div>
+-->
+
+                </div>
+              </div>`;
+        }
+
+        function logout() {
+            if (API.enabled) {
+                fetch(API.base + "auth.html?action=logout", { credentials: "include" })
+                    .finally(() => location.href = "index.html");
+            }
+        }
+
+        async function saveInstitute(e) {
+            e.preventDefault();
+            Object.assign(DATA.institute, Object.fromEntries(new FormData(e.target)));
+            save();
+            await apiSaveInstitute();
+            toast("Institute details saved");
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(DATA, null, 2)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "sakha-backup-" + today() + ".json";
+            a.click();
+            toast("Backup downloaded");
+        }
+
+        function importData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const r = new FileReader();
+            r.onload = () => {
+                try {
+                    DATA = JSON.parse(r.result);
+                    if (!DATA._meta) DATA._meta = { lastReceiptNum: 0 };
+                    refreshReceiptCounter();
+                    save();
+                    renderAll();
+                    toast("Data imported");
+                } catch (err) { alert("Invalid backup file"); }
+            };
+            r.readAsText(file);
+        }
+
+        function resetData() {
+            if (API.enabled) { alert("Reset is disabled in server mode. Manage data in MySQL directly."); return; }
+            if (!confirm("This erases current data and restores samples. Continue?")) return;
+            DATA = JSON.parse(JSON.stringify(SEED));
+            if (!DATA._meta) DATA._meta = { lastReceiptNum: 0 };
+            refreshReceiptCounter();
+            save();
+            renderAll();
+            toast("Reset to sample data");
+        }
+
+        /* ============================ PRINTING ============================ */
+
+        /* ---------- PRINT HEADER ---------- */
+        function printHeader() {
+            const i = DATA.institute;
+            const logos = [
+                { src: "images/sakha-logo.jpg", alt: "sakha", fallback: "sakha" },
+                { src: "images/iso-logo.png", alt: "ISO", fallback: "ISO" },
+                { src: "images/essci-logo.png", alt: "ESSCI", fallback: "ESSCI" },
+                { src: "images/skill-india-logo.png", alt: "Skill India", fallback: "Skill India" },
+            ];
+
+            const logoItems = logos.map(l =>
+                    `<div class="logo-item">
+                  <img src="${l.src}" alt="${l.alt}" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
+                  <span class="logo-fallback">${l.fallback}</span>
+                </div>`
+                ).join("");
+
+            const trustLine = i.trust ? `<p class="trust">${esc(i.trust)}</p>` : '';
+            const isoLine = i.footer ? `<div class="iso-line">${esc(i.footer)}</div>` : '';
+
+            return `
+                <div class="header-wrapper">
+                  <div class="header-logos">${logoItems}</div>
+                  <div class="inst-details">
+                    ${trustLine}
+                    <p class="name">${esc(i.name)}</p>
+                    ${isoLine}
+                  </div>
+                </div>
+              `;
+        }
+
+        /* ---------- PRINT FOOTER ---------- */
+        function printFooter() {
+            const i = DATA.institute;
+            const blockLines = [];
+            if (i.address) blockLines.push(`<span class="footer-line"><strong>Address:</strong> ${esc(i.address)}</span>`);
+            if (i.phone) blockLines.push(`<span class="footer-line"><strong>Phone:</strong> ${esc(i.phone)}</span>`);
+
+            const emailWebsite = [];
+            if (i.email) emailWebsite.push(`<span><strong>Email:</strong> ${esc(i.email)}</span>`);
+            if (i.website) emailWebsite.push(`<span><strong>Website:</strong> ${esc(i.website)}</span>`);
+            const rowHTML = emailWebsite.length ? `<div class="footer-row">${emailWebsite.join('')}</div>` : '';
+
+            const blockHTML = blockLines.join('');
+
+            return `<div class="print-footer">${blockHTML}${rowHTML}</div>`;
+        }
+
+        /* ---------- ADMISSION PRINT ---------- */
+        function printAdmission(id) {
+            const s = studentById(id);
+            const c = courseById(s.courseId);
+            const b = batchById(s.batchId);
+
+            const fields = [
+                ["Registration No", s.reg],
+                ["Student Name", s.name],
+                ["Gender", s.gender],
+                ["Date of Birth", fmtDate(s.dob)],
+                ["Guardian", s.guardian || "—"],
+                ["Phone", s.phone],
+                ["Aadhar Number", s.aadhar || "—"],
+                ["Qualification", s.qualification || "—"],
+                ["Email", s.email || "—"],
+                ["Address", s.address || "—"],
+                ["Course", courseName(s.courseId)],
+                ["Department", c ? c.dept : "—"],
+                ["Duration", c ? c.duration : "—"],
+                ["Batch", b ? b.name : "—"],
+                ["Course Fee", INR(c ? c.fee : 0)],
+                ["Admission Date", fmtDate(s.admitDate)],
+                ["Status", s.status],
+            ];
+
+            const rowsHTML = fields.map(([k, v]) =>
+                `<tr><td class="field-label">${k}</td><td>${esc(v)}</td></tr>`
+            ).join("");
+
+            doPrint(`
+                <div class="print-doc">
+                  ${printHeader()}
+                  <p class="section-title">ADMISSION FORM</p>
+
+                  <div class="admission-layout">
+                    <div class="admission-fields">
+                      <table>${rowsHTML}</table>
+                    </div>
+                    <div class="admission-photo">
+                      <div class="photo-box">
+                        <svg width="60" height="70" viewBox="0 0 60 70" fill="none" stroke="#888" stroke-width="1.5">
+                          <rect x="2" y="2" width="56" height="66" rx="2" />
+                          <circle cx="30" cy="22" r="12" />
+                          <path d="M10 58 L10 48 Q10 42 18 42 L42 42 Q50 42 50 48 L50 58" />
+                        </svg>
+                        <div class="photo-label">Passport Photo</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="sign-row">
+                    <div class="sign-box"><div class="line">Student Signature</div></div>
+                    <div class="sign-box"><div class="line">Authorised Signatory</div></div>
+                  </div>
+
+                  ${printFooter()}
+                  <div class="print-meta">Generated on ${fmtDate(today())} · sakha</div>
+                </div>
+              `);
+        }
+
+        /* ===== TWO RECEIPTS ON ONE PAGE with BALANCE ===== */
+     
+        function printReceipt(id) {
+            let f = DATA.fees.find(x => x.id === id);
+            if (!f) f = feeCache[id];
+            if (!f) { toast("Receipt not found"); return; }
+
+            const s = studentById(f.studentId);
+            if (!s) { toast("Student not found"); return; }
+
+            const c = courseById(s.courseId);
+            // Use courseFee from student if available, else from course
+            const courseFee = (s.courseFee != null) ? Number(s.courseFee) : (c ? c.fee : 0);
+
+            // Get all fees for this student from DATA.fees (which holds ALL fees)
+            let allFees = [];
+            if (API.enabled) {
+                // DATA.fees should have all fees from the boot fetch
+                if (DATA.fees && DATA.fees.length > 0) {
+                    allFees = DATA.fees.filter(fee => fee.studentId === s.id);
+                }
+                // fallback: try feeCache (may be partial)
+                if (allFees.length === 0) {
+                    for (const fid in feeCache) {
+                        const fee = feeCache[fid];
+                        if (fee.studentId === s.id) allFees.push(fee);
+                    }
+                }
+            } else {
+                allFees = DATA.fees.filter(fee => fee.studentId === s.id);
+            }
+            // Sort by date (and by id to break ties)
+            allFees.sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.id.localeCompare(b.id));
+
+            // Find index of current fee
+            const idx = allFees.findIndex(fee => fee.id === id);
+            let cumulativePaid;
+            if (idx === -1) {
+                cumulativePaid = allFees.reduce((sum, fee) => sum + Number(fee.amount), 0);
+            } else {
+                cumulativePaid = allFees.slice(0, idx + 1).reduce((sum, fee) => sum + Number(fee.amount), 0);
+            }
+            const balanceDue = Math.max(0, courseFee - cumulativePaid);
+
+            // --- Build receipt rows ---
+            const rows = [
+                ["Receipt No", f.receiptNo],
+                ["Date", fmtDate(f.date)],
+                ["Student", `${s.name} (${s.reg})`],
+                ["Course", courseName(s.courseId)],
+                ["Payment Mode", f.mode],
+                ["Note", f.note || "—"],
+            ];
+
+            const rowsHTML = rows.map(([k, v]) =>
+                `<tr><td class="field-label">${k}</td><td>${esc(v)}</td></tr>`
+            ).join("");
+
+            function receiptBlock(label) {
+                return `
+                    <div class="receipt-block">
+                        <div class="copy-label">${label}</div>
+                        <div class="receipt-title">FEE RECEIPT</div>
+                        <table>${rowsHTML}</table>
+                        <table>
+                            <tr><td class="receipt-total" colspan="2">Amount Paid: <span>${INR(f.amount)}</span></td></tr>
+                        </table>
+                        <div style="margin-top:4px;">
+                            <div class="balance-row"><span class="label">Total Paid (to date)</span><span class="value paid">${INR(cumulativePaid)}</span></div>
+                            <div class="balance-row"><span class="label">Balance Due</span><span class="value due">${INR(balanceDue)}</span></div>
+                        </div>
+                        <div class="sign-row">
+                            <div class="sign-box"><div class="line">Student Signature</div></div>
+                            <div class="sign-box"><div class="line">Authorised Signatory</div></div>
+                        </div>
+                        ${printFooter()}
+                    </div>
+                `;
+            }
+
+            const fullHTML = `
+                    <div class="print-doc">
+                        ${printHeader()}
+                        ${receiptBlock("STUDENT COPY")}
+                        <hr class="receipt-divider" />
+                        ${receiptBlock("OFFICE COPY")}
+                        <div class="print-meta">Generated on ${fmtDate(today())} · sakha · Receipt #${f.receiptNo}</div>
+                    </div>
+                `;
+
+            doPrint(fullHTML);
+        }
+
+        /* ---------- CERTIFICATE PRINT ---------- */
+        function printCert(id) {
+            const ct = DATA.certificates.find(x => x.id === id);
+            if (!ct) return;
+            const s = studentById(ct.studentId) || { name: ct.studentName, courseId: ct.courseId };
+            const c = courseById(s.courseId);
+
+            doPrint(`
+                <div class="print-doc">
+                  <div class="cert-wrap">
+                    ${printHeader()}
+
+                    <p class="cert-title">Certificate of Completion</p>
+                    <p class="cert-sub">This is to certify that</p>
+                    <p class="cert-name">${esc(s.name)}</p>
+                    <p class="cert-body">
+                      has successfully completed the course
+                      <strong>${esc(courseName(s.courseId))}</strong>
+                      ${c ? ' (' + esc(c.duration) + ')' : ''}
+                      with grade <strong>${esc(ct.grade)}</strong>
+                      at SAKHA TAJ Institute of Skill Development &amp; Training Center, .
+                    </p>
+
+                    <div class="cert-footer">
+                      <div class="sign">
+                        <div class="line">Certificate No: ${esc(ct.certNo)}</div>
+                        <div style="font-size:9px;color:#888;margin-top:1px;">Issued: ${fmtDate(ct.issueDate)}</div>
+                      </div>
+                      <div class="sign">
+                        <div class="line">Director</div>
+                      </div>
+                    </div>
+
+                    ${printFooter()}
+                  </div>
+                  <div class="print-meta">Verified by sakha · ${fmtDate(today())}</div>
+                </div>
+              `);
+        }
+
+        /* ---------- STUDENT LIST PRINT ---------- */
+       
+        async function printList(kind) {
+    if (kind !== "students") return;
+
+    let rows = [];
+    let filterLabel = "All Students";
+
+    if (API.enabled) {
+        toast("Preparing list…");
+        // Fetch all students (without server-side feeStatus filter)
+        const res = await listStudents({
+            page: 1,
+            per: 5000,
+            q: studentQuery,
+            status: stuStatus,
+            sort: "name",
+            feeStatus: "" // force server to ignore fee status
+        });
+        rows = res.rows;
+
+        // ---- Apply local fee status filter ----
+        if (stuFeeStatus === "paid") {
+            rows = rows.filter(s => studentDue(s.id) <= 0);
+        } else if (stuFeeStatus === "pending") {
+            rows = rows.filter(s => studentDue(s.id) > 0);
+        }
+        // ----------------------------------------
+
+    } else {
+        // Local mode – unchanged
+        let data = DATA.students.slice();
+        const t = studentQuery.toLowerCase();
+        if (t) {
+            data = data.filter(s =>
+                s.name.toLowerCase().includes(t) ||
+                (s.reg || "").toLowerCase().includes(t) ||
+                (s.phone || "").includes(t) ||
+                (s.aadhar || "").includes(t)
+            );
+        }
+        if (stuStatus) data = data.filter(s => s.status === stuStatus);
+        if (stuFeeStatus === "paid") data = data.filter(s => studentDue(s.id) <= 0);
+        else if (stuFeeStatus === "pending") data = data.filter(s => studentDue(s.id) > 0);
+        rows = data;
+    }
+
+    // Build the filter label
+    if (stuFeeStatus === "paid") filterLabel = "Paid Students (zero balance)";
+    else if (stuFeeStatus === "pending") filterLabel = "Students with Pending Balance";
+    if (studentQuery) filterLabel += ` · Search: "${studentQuery}"`;
+    if (stuStatus) filterLabel += ` · Status: ${stuStatus}`;
+
+    // Build table rows
+    const tableRows = rows.map((s, i) => {
+        const fee = (s.courseFee != null) ? Number(s.courseFee) : studentFee(s.id);
+        const paid = (s.paid != null) ? Number(s.paid) : studentPaid(s.id);
+        const due = Math.max(0, fee - paid);
+        return `<tr>
+            <td style="text-align:center;">${i + 1}</td>
+            <td style="text-align:center;">${esc(s.reg)}</td>
+            <td style="text-align:left;font-weight:600;">${esc(s.name)}</td>
+            <td style="text-align:left;">${esc(courseName(s.courseId))}</td>
+            <td style="text-align:center;">${esc(s.phone)}</td>
+            <td style="text-align:center;">${esc(s.qualification || '—')}</td>
+            <td style="text-align:center;">${esc(s.status)}</td>
+            <td style="text-align:right;font-weight:600;color:#1faa59;">${INR(paid)}</td>
+            <td style="text-align:right;font-weight:600;color:#dc3545;">${INR(due)}</td>
+        </tr>`;
+    }).join("");
+
+    doPrint(`
+        <div class="print-doc">
+            ${printHeader()}
+            <p class="section-title">STUDENT REGISTER</p>
+            <p style="text-align:center;font-size:13px;color:#555;margin:-8px 0 14px;">${filterLabel}</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align:center;width:5%;">#</th>
+                        <th style="text-align:center;width:10%;">Reg No</th>
+                        <th style="text-align:left;width:17%;">Name</th>
+                        <th style="text-align:left;width:15%;">Course</th>
+                        <th style="text-align:center;width:10%;">Phone</th>
+                        <th style="text-align:center;width:11%;">Qualification</th>
+                        <th style="text-align:center;width:8%;">Status</th>
+                        <th style="text-align:right;width:6%;">Paid</th>
+                        <th style="text-align:right;width:6%;">Due</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRows || `<tr><td colspan="10" style="padding:20px;text-align:center;">No students match the filter.</td></tr>`}</tbody>
+            </table>
+            ${printFooter()}
+            <div class="print-meta">Generated on ${fmtDate(today())} · Total: ${rows.length} students</div>
+        </div>
+    `);
+}
+
+        /* ---------- PRINT ALL RECEIPTS (UPDATED) ---------- */
+        async function printAllReceipts() {
+            // Ensure we have all fees
+            let allFees = [];
+            if (API.enabled && DATA.fees && DATA.fees.length > 0) {
+                allFees = DATA.fees;
+            } else {
+                try {
+                    const res = await listFees({ page: 1, per: 9999 });
+                    allFees = res.rows;
+                    DATA.fees = allFees;
+                } catch (e) {
+                    toast("Failed to load receipts");
+                    return;
+                }
+            }
+
+            if (allFees.length === 0) {
+                toast("No receipts to print");
+                return;
+            }
+
+            // Group fees by studentId and sort by date
+            const feesByStudent = {};
+            allFees.forEach(f => {
+                if (!feesByStudent[f.studentId]) feesByStudent[f.studentId] = [];
+                feesByStudent[f.studentId].push(f);
+            });
+            // For each student, sort fees by date and id
+            Object.keys(feesByStudent).forEach(sid => {
+                feesByStudent[sid].sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.id.localeCompare(b.id));
+            });
+
+            // Sort all fees by date for consistent display
+            allFees.sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.id.localeCompare(b.id));
+
+            // Build rows with computed cumulative and balance
+            const rows = [];
+            let totalAmount = 0;
+            for (const f of allFees) {
+                const student = studentById(f.studentId);
+                if (!student) continue; // skip if student not found
+                const courseFee = (student.courseFee != null) ? Number(student.courseFee) : (courseById(student.courseId)?.fee || 0);
+                // Get all fees for this student
+                const studentFees = feesByStudent[f.studentId] || [];
+                // Find index of current fee in studentFees
+                const idx = studentFees.findIndex(fee => fee.id === f.id);
+                let cumulativePaid = 0;
+                if (idx !== -1) {
+                    cumulativePaid = studentFees.slice(0, idx + 1).reduce((sum, fee) => sum + Number(fee.amount), 0);
+                } else {
+                    cumulativePaid = studentFees.reduce((sum, fee) => sum + Number(fee.amount), 0);
+                }
+                const balance = Math.max(0, courseFee - cumulativePaid);
+                totalAmount += Number(f.amount);
+                rows.push({
+                    fee: f,
+                    studentName: student.name,
+                    cumulativePaid,
+                    balance,
+                });
+            }
+
+            // Now build table rows HTML
+            const rowsHTML = rows.map((r, i) => {
+                const f = r.fee;
+                return `<tr>
+                    <td style="text-align:center;">${i + 1}</td>
+                    <td style="text-align:center;">${esc(f.receiptNo)}</td>
+                    <td style="text-align:left;">${esc(r.studentName)}</td>
+                    <td style="text-align:center;">${fmtDate(f.date)}</td>
+                    <td style="text-align:center;">${esc(f.mode)}</td>
+                    <td style="text-align:right;font-weight:600;color:#1faa59;">${INR(f.amount)}</td>
+                    <td style="text-align:right;font-weight:600;color:#0f2c4d;">${INR(r.cumulativePaid)}</td>
+                    <td style="text-align:right;font-weight:600;color:${r.balance > 0 ? '#dc3545' : '#1faa59'};">${INR(r.balance)}</td>
+                </tr>`;
+            }).join('');
+
+            const printHTML = `
+                <div class="print-doc">
+                    ${printHeader()}
+                    <p class="section-title">ALL RECEIPTS</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="text-align:center;">#</th>
+                                <th style="text-align:center;">Receipt No</th>
+                                <th style="text-align:left;">Student</th>
+                                <th style="text-align:center;">Date</th>
+                                <th style="text-align:center;">Mode</th>
+                                <th style="text-align:right;">Amount</th>
+                                <th style="text-align:right;">Cumulative Paid</th>
+                                <th style="text-align:right;">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHTML || '<tr><td colspan="8" style="padding:16px;text-align:center;">No receipts found.</td></tr>'}
+                        </tbody>
+                    </table>
+                    <div style="margin-top:12px; text-align:right; font-size:14px; font-weight:700;">
+                        Grand Total Collected: <span style="color:#0f2c4d;">${INR(totalAmount)}</span>
+                    </div>
+                    ${printFooter()}
+                    <div class="print-meta">Generated on ${fmtDate(today())} · Total ${rows.length} receipts</div>
+                </div>
+            `;
+            doPrint(printHTML);
+        }
+
+        /* ---------- Generic print launcher ---------- */
+        function doPrint(html) {
+            document.getElementById("printArea").innerHTML = html;
+            document.querySelectorAll("#printArea img").forEach(img => {
+                if (!img.hasAttribute('onerror')) {
+                    img.setAttribute('onerror',
+                        "this.style.display='none';this.nextElementSibling.style.display='block';");
+                }
+            });
+            document.querySelectorAll("#printArea .logo-fallback").forEach(el => el.style.display = 'none');
+            window.print();
+        }
+
+        /* ============================ ROUTER / INIT ============================ */
+        const titles = {
+            dashboard: "Dashboard",
+            students: "Students",
+            admissions: "Admissions",
+            courses: "Courses & Batches",
+            fees: "Fees & Receipts",
+            placements: "Placements",
+            certificates: "Certificates",
+            batchStudents: "Batch Students",
+            settings: "Settings & Backup",
+        };
+
+        function go(view) {
+            document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+            document.getElementById("view-" + view).classList.add("active");
+            document.querySelectorAll(".side-link").forEach(l => l.classList.toggle("active", l.dataset.view === view));
+            document.getElementById("pageTitle").textContent = titles[view] || view;
+            const R = { dashboard: renderDashboard, students: renderStudents, admissions: renderAdmissions,
+                courses: renderCourses, fees: renderFees, placements: renderPlacements,
+                certificates: renderCertificates, batchStudents: renderBatchStudents, settings: renderSettings };
+            if (R[view]) R[view]();
+            if (view === "dashboard") drawCharts();
+            if (window.innerWidth < 1024) closeSide();
+            window.scrollTo(0, 0);
+        }
+
+        document.getElementById("navMenu").addEventListener("click", (e) => {
+            const a = e.target.closest(".side-link");
+            if (!a) return;
+            e.preventDefault();
+            go(a.dataset.view);
+        });
+
+        const sidebar = document.getElementById("sidebar"),
+            overlay = document.getElementById("overlay");
+
+        function openSide() { sidebar.classList.remove("-translate-x-full");
+            overlay.classList.remove("hidden"); }
+
+        function closeSide() { sidebar.classList.add("-translate-x-full");
+            overlay.classList.add("hidden"); }
+        document.getElementById("menuBtn").addEventListener("click", openSide);
+        overlay.addEventListener("click", closeSide);
+
+        document.getElementById("globalSearch").addEventListener("input", debounce((e) => {
+            studentQuery = e.target.value;
+            stuPage = 1;
+            go("students");
+            renderStudents().then(() => { const n = document.getElementById("stuSearch"); if (n) n.focus(); });
+        }, 280));
+
+        document.getElementById("modal").addEventListener("click", (e) => { if (e.target.id === "modal") closeModal(); });
+
+        (async function init() {
+            await bootData();
+            renderAll();
+        })();
+        
+        async function printAdmissionsList() {
+    // Fetch all students matching the current search and status dropdown
+    const res = await listStudents({ page: 1, per: 9999, q: admQuery, status: admStatus, sort: "admitDate" });
+    let rows = res.rows;
+
+    // Apply the "From" and "To" date filters
+    if (admDateFrom) rows = rows.filter(s => s.admitDate && s.admitDate >= admDateFrom);
+    if (admDateTo) rows = rows.filter(s => s.admitDate && s.admitDate <= admDateTo);
+
+    // Sort by admission date (newest first)
+    rows.sort((a, b) => (b.admitDate || '').localeCompare(a.admitDate || ''));
+
+    // Build a description of the applied filters to show on the printed paper
+    const filterDesc = [];
+    if (admDateFrom && admDateTo) filterDesc.push(`${fmtDate(admDateFrom)} to ${fmtDate(admDateTo)}`);
+    else if (admDateFrom) filterDesc.push(`From ${fmtDate(admDateFrom)}`);
+    else if (admDateTo) filterDesc.push(`Until ${fmtDate(admDateTo)}`);
+    if (admStatus) filterDesc.push(`Status: ${admStatus}`);
+    if (admQuery) filterDesc.push(`Search: "${admQuery}"`);
+    const filterStr = filterDesc.length ? ` (${filterDesc.join(' · ')})` : '';
+
+    // Build the table rows
+    const tableRows = rows.map((s, i) => `
+        <tr>
+            <td style="text-align:center;">${i + 1}</td>
+            <td style="text-align:center;">${esc(s.reg)}</td>
+            <td style="text-align:left;">${esc(s.name)}</td>
+            <td style="text-align:left;">${esc(courseName(s.courseId))}</td>
+            <td style="text-align:center;">${fmtDate(s.admitDate)}</td>
+            <td style="text-align:center;">${esc(s.status)}</td>
+        </tr>
+    `).join('');
+
+    // Send to the print engine (uses your existing print layout)
+    doPrint(`
+        <div class="print-doc">
+            ${printHeader()}
+            <p class="section-title">ADMISSIONS LIST${filterStr}</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align:center;width:5%;">#</th>
+                        <th style="text-align:center;width:15%;">Reg No</th>
+                        <th style="text-align:left;width:25%;">Name</th>
+                        <th style="text-align:left;width:25%;">Course</th>
+                        <th style="text-align:center;width:15%;">Admit Date</th>
+                        <th style="text-align:center;width:15%;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRows || `<tr><td colspan="6" style="padding:16px;text-align:center;">No admissions match the filter.</td></tr>`}
+                </tbody>
+            </table>
+            ${printFooter()}
+            <div class="print-meta">Generated on ${fmtDate(today())} · Total: ${rows.length} admissions</div>
+        </div>
+    `);
+}
+    </script>
+</body>
+</html>
